@@ -111,11 +111,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Headers\DirectedGraph.h" />
+    <ClInclude Include="Headers\Graph.h" />
     <ClInclude Include="Headers\PCH.h" />
     <ClInclude Include="Headers\UndirectedGraph.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Headers\DirectedGraph.cpp" />
+    <ClCompile Include="Headers\Graph.cpp" />
     <ClCompile Include="Headers\UndirectedGraph.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

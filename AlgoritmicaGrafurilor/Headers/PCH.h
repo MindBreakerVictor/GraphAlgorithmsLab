@@ -1,5 +1,5 @@
-#ifndef _PCH
-#define _PCH
+#ifndef PCH_H
+#define PCH_H
 
 #include <iostream>
 #include <fstream>

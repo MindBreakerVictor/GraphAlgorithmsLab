@@ -1,15 +1,15 @@
-#ifndef _DIRECTED_GRAPH
-#define _DIRECTED_GRAPH
+#ifndef DIRECTED_GRAPH
+#define DIRECTED_GRAPH
 
-#include "UndirectedGraph.h"
+#include "Graph.h"
 
-class DirectedGraph : public UndirectedGraph
+class DirectedGraph : public Graph
 {
 	public:
-		DirectedGraph() : UndirectedGraph() { }
+		DirectedGraph() : Graph() { }
 		DirectedGraph(std::ifstream& input);
-		DirectedGraph(const DirectedGraph& source) : UndirectedGraph(source.vertices, source.edges, source.graph) { }
-		~DirectedGraph() { UndirectedGraph::~UndirectedGraph(); }
+		DirectedGraph(const DirectedGraph& source) : Graph(source.vertices, source.edges, source.adjacencyList) { }
+		~DirectedGraph() { }
 
 		uint getDegree(uint vertex) const;
 		uint getInDegree(uint vertex) const;
@@ -28,31 +28,28 @@ class DirectedGraph : public UndirectedGraph
 		bool isRegular() const;
 		bool isStronglyConnected() const;
 
-		std::stack<uint> getTopologicalSort() const;
 		std::vector<uint> breadthFirstSearch(uint vertex) const;
 		std::vector<uint> depthFirstSearch(uint vertex) const;
-		std::vector<int> getRoadDistance(uint vertex) const;
+
 		std::vector<std::vector<bool>> getRoadMatrix() const;
+		std::vector<int> getRoadDistance(uint vertex) const;
+
+		std::stack<uint> getTopologicalSort() const;
+		//std::vector<std::vector<uint>> getStronglyConnectedComponents() const;
 
 		DirectedGraph& operator=(const DirectedGraph& source);
 
-		friend DirectedGraph operator+(const DirectedGraph& graphOne, const DirectedGraph& graphTwo);
-		friend DirectedGraph operator-(const DirectedGraph& graphOne, const DirectedGraph& graphTwo);
+		DirectedGraph operator+(const DirectedGraph& source) const;
+		DirectedGraph operator-(const DirectedGraph& source) const;
 
-		friend bool operator==(const DirectedGraph& graphOne, const DirectedGraph& graphTwo);
-		friend bool operator!=(const DirectedGraph& graphOne, const DirectedGraph& graphTwo) { return !(graphOne == graphTwo); }
+		bool operator==(const DirectedGraph& source) const;
+		bool operator!=(const DirectedGraph& source) const { return !((*this) == source); }
+
+		friend std::istream& operator>>(std::istream& is, DirectedGraph& graph);
+		friend std::ifstream& operator>>(std::ifstream& ifs, DirectedGraph& graph);
 
 	private:
 		void topologicalSort(uint vertex, std::vector<bool>& visited, std::stack<uint>& topSort) const;
-
-		// Undefined methods for DirectedGraph				
-		UndirectedGraph::isHamiltonian;
-		UndirectedGraph::isEulerian;
-		UndirectedGraph::isBipartite;
-
-		// Not used in a directed graph
-		UndirectedGraph::getConnectedComponents;
-		UndirectedGraph::isConnected;
 };
 
 #endif

@@ -5,13 +5,13 @@
 DirectedGraph::DirectedGraph(std::ifstream& input)
 {
 	input >> vertices >> edges;
-	graph.resize(vertices);
+	adjacencyList.resize(vertices);
 
 	for (uint i = 0; i < edges; i++)
 	{
 		uint x, y;
 		input >> x >> y;
-		graph[x].push_back(y);
+		adjacencyList[x].push_back(y);
 	}
 }
 
@@ -30,10 +30,10 @@ uint DirectedGraph::getInDegree(uint vertex) const
 
 	uint count = 0;
 
-	for (uint i = 0; i < graph.size(); i++)
+	for (uint i = 0; i < adjacencyList.size(); i++)
 	{
-		for (uint j = 0; j < graph[i].size(); j++)
-			if (graph[i][j] == vertex)
+		for (uint j = 0; j < adjacencyList[i].size(); j++)
+			if (adjacencyList[i][j] == vertex)
 				count++;
 	}
 
@@ -45,7 +45,7 @@ uint DirectedGraph::getOutDegree(uint vertex) const
 	if (!isValidVertex(vertex))
 		return 0;
 
-	return graph[vertex].size();
+	return adjacencyList[vertex].size();
 }
 
 uint DirectedGraph::getMinDegree() const
@@ -136,14 +136,14 @@ bool DirectedGraph::isComplete() const
 {
 	for (uint i = 0; i < vertices; i++)
 	{
-		if (graph[i].size() < vertices - 1)
+		if (adjacencyList[i].size() < vertices - 1)
 			return false;
 
 		std::vector<bool> visited(vertices, false);
 		visited[i] = true;
 
-		for (uint j = 0; j < graph[i].size(); j++)
-			visited[graph[i][j]] = true;
+		for (uint j = 0; j < adjacencyList[i].size(); j++)
+			visited[adjacencyList[i][j]] = true;
 
 		for (uint j = 0; j < visited.size(); j++)
 			if (!visited[j])
@@ -206,11 +206,11 @@ std::vector<uint> DirectedGraph::breadthFirstSearch(uint vertex) const
 		uint element = queue.front();
 
 		for (uint i = 0; i < getOutDegree(element); i++)
-			if (!visited[graph[element][i]])
+			if (!visited[adjacencyList[element][i]])
 			{
-				connectedComponent.push_back(graph[element][i]);
-				queue.push(graph[element][i]);
-				visited[graph[element][i]] = true;
+				connectedComponent.push_back(adjacencyList[element][i]);
+				queue.push(adjacencyList[element][i]);
+				visited[adjacencyList[element][i]] = true;
 			}
 		queue.pop();
 	}
@@ -237,15 +237,15 @@ std::vector<uint> DirectedGraph::depthFirstSearch(uint vertex) const
 		bool found = false;
 
 		for (index = 0; index < getOutDegree(element) && !found; index++)
-			if (!visited[graph[element][index]])
+			if (!visited[adjacencyList[element][index]])
 				found = true;
 
 		if (found)
 		{
 			index--;
-			stack.push(graph[element][index]);
-			visited[graph[element][index]] = true;
-			connectedComponent.push_back(graph[element][index]);
+			stack.push(adjacencyList[element][index]);
+			visited[adjacencyList[element][index]] = true;
+			connectedComponent.push_back(adjacencyList[element][index]);
 		}
 		else
 			stack.pop();
@@ -272,11 +272,11 @@ std::vector<int> DirectedGraph::getRoadDistance(uint vertex) const
 		uint element = queue.front();
 
 		for (uint i = 0; i < getOutDegree(element); i++)
-			if (!visited[graph[element][i]])
+			if (!visited[adjacencyList[element][i]])
 			{
-				roadDistance[graph[element][i]] = roadDistance[element] + 1;
-				queue.push(graph[element][i]);
-				visited[graph[element][i]] = true;
+				roadDistance[adjacencyList[element][i]] = roadDistance[element] + 1;
+				queue.push(adjacencyList[element][i]);
+				visited[adjacencyList[element][i]] = true;
 			}
 		queue.pop();
 	}
@@ -311,77 +311,107 @@ DirectedGraph& DirectedGraph::operator=(const DirectedGraph& source)
 
 	vertices = source.vertices;
 	edges = source.edges;
-	graph = source.graph;
+	adjacencyList = source.adjacencyList;
 
 	return *this;
 }
 
-DirectedGraph operator+(const DirectedGraph& graphOne, const DirectedGraph& graphTwo)
+DirectedGraph DirectedGraph::operator+(const DirectedGraph& source) const
 {
-	if (graphOne.vertices != graphTwo.vertices || graphOne.vertices == 0)
+	if (this->vertices != source.vertices || this->vertices == 0)
 		return DirectedGraph();
 
 	DirectedGraph sumGraph;
-	sumGraph.vertices = graphOne.vertices;
-	sumGraph.graph.resize(sumGraph.vertices);
+	sumGraph.vertices = this->vertices;
+	sumGraph.adjacencyList.resize(sumGraph.vertices);
 
 	for (uint i = 0; i < sumGraph.vertices; i++)
 	{
-		for (uint j = 0; j < graphOne.graph[i].size(); j++)
-			sumGraph.graph[i].push_back(graphOne.graph[i][j]);
+		for (uint j = 0; j < this->adjacencyList[i].size(); j++)
+			sumGraph.adjacencyList[i].push_back(this->adjacencyList[i][j]);
 
-		for (uint j = 0; j < graphTwo.graph[i].size(); j++)
+		for (uint j = 0; j < source.adjacencyList[i].size(); j++)
 		{
 			bool found = false;
 
-			for (uint k = 0; k < sumGraph.graph[i].size(); k++)
-				if (sumGraph.graph[i][k] == graphTwo.graph[i][j])
+			for (uint k = 0; k < sumGraph.adjacencyList[i].size(); k++)
+				if (sumGraph.adjacencyList[i][k] == source.adjacencyList[i][j])
 					found = true;
 
 			if (!found)
-				sumGraph.graph[i].push_back(graphTwo.graph[i][j]);
+				sumGraph.adjacencyList[i].push_back(source.adjacencyList[i][j]);
 		}
 	}
 
 	return sumGraph;
 }
 
-DirectedGraph operator-(const DirectedGraph& graphOne, const DirectedGraph& graphTwo)
+DirectedGraph DirectedGraph::operator-(const DirectedGraph& source) const
 {
 	// TODO: better way to handle this
-	if (graphOne.vertices != graphTwo.vertices || graphOne.vertices == 0)
+	if (this->vertices != this->vertices || source.vertices == 0)
 		return DirectedGraph();
 
 	DirectedGraph difGraph;
-	difGraph.vertices = graphOne.vertices;
-	difGraph.graph.resize(difGraph.vertices);
+	difGraph.vertices = this->vertices;
+	difGraph.adjacencyList.resize(difGraph.vertices);
 
-	for (uint i = 0; i < graphOne.graph.size(); i++)
+	for (uint i = 0; i < this->adjacencyList.size(); i++)
 	{
-		for (uint j = 0; j < graphOne.graph[i].size(); j++)
+		for (uint j = 0; j < this->adjacencyList[i].size(); j++)
 		{
 			bool found = false;
-			for (uint k = 0; k < graphTwo.graph[i].size(); k++)
-				if (graphOne.graph[i][j] == graphTwo.graph[i][k])
+			for (uint k = 0; k < this->adjacencyList[i].size(); k++)
+				if (this->adjacencyList[i][j] == source.adjacencyList[i][k])
 					found = true;
 
 			if (!found)
-				difGraph.graph[i].push_back(graphOne.graph[i][j]);
+				difGraph.adjacencyList[i].push_back(this->adjacencyList[i][j]);
 		}
 	}
 
 	return difGraph;
 }
 
-bool operator==(const DirectedGraph& graphOne, const DirectedGraph& graphTwo)
+bool DirectedGraph::operator==(const DirectedGraph& source) const
 {
-	if (graphOne.vertices != graphTwo.vertices || graphOne.edges != graphTwo.edges)
+	if (this->vertices != source.vertices || this->edges != source.edges)
 		return false;
 
-	if ((graphOne + graphTwo).edges != graphOne.edges)
+	if (((*this) + source).edges != this->edges)
 		return false;
 
 	return true;
+}
+
+std::istream& operator>>(std::istream& is, DirectedGraph& graph)
+{
+	is >> graph.vertices >> graph.edges;
+	graph.adjacencyList.resize(graph.vertices);
+
+	for (uint i = 0; i < graph.edges; i++)
+	{
+		uint x, y;
+		is >> x >> y;
+		graph.adjacencyList[x].push_back(y);
+	}
+
+	return is;
+}
+
+std::ifstream& operator>>(std::ifstream& ifs, DirectedGraph& graph)
+{
+	ifs >> graph.vertices >> graph.edges;
+	graph.adjacencyList.resize(graph.vertices);
+
+	for (uint i = 0; i < graph.edges; i++)
+	{
+		uint x, y;
+		ifs >> x >> y;
+		graph.adjacencyList[x].push_back(y);
+	}
+
+	return ifs;
 }
 
 // -- End of operator overloading
@@ -392,9 +422,9 @@ void DirectedGraph::topologicalSort(uint vertex, std::vector<bool>& visited, std
 {
 	visited[vertex] = true;
 
-	for (uint i = 0; i < graph[vertex].size(); i++)
-		if (!visited[graph[vertex][i]])
-			topologicalSort(graph[vertex][i], visited, topSort);
+	for (uint i = 0; i < adjacencyList[vertex].size(); i++)
+		if (!visited[adjacencyList[vertex][i]])
+			topologicalSort(adjacencyList[vertex][i], visited, topSort);
 
 	topSort.push(vertex);
 }

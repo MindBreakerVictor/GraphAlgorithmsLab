@@ -2,24 +2,18 @@
 
 // -- Public methods
 
-UndirectedGraph::UndirectedGraph(std::ifstream &input)
+UndirectedGraph::UndirectedGraph(std::ifstream& ifs)
 {
-	input >> vertices >> edges;
-	graph.resize(vertices);
+	ifs >> vertices >> edges;
+	adjacencyList.resize(vertices);
 
 	for (uint i = 0; i < edges; i++)
 	{
 		uint x, y;
-		input >> x >> y;
-		graph[x].push_back(y);
-		graph[y].push_back(x);
+		ifs >> x >> y;
+		adjacencyList[x].push_back(y);
+		adjacencyList[y].push_back(x);
 	}
-}
-
-UndirectedGraph::~UndirectedGraph()
-{
-	vertices = edges = 0;
-	graph.~vector();
 }
 
 uint UndirectedGraph::getDegree(uint vertex) const
@@ -27,7 +21,7 @@ uint UndirectedGraph::getDegree(uint vertex) const
 	if (!isValidVertex(vertex))
 		return 0;
 
-	return graph[vertex].size();
+	return adjacencyList[vertex].size();
 }
 
 uint UndirectedGraph::getMinDegree() const
@@ -134,13 +128,13 @@ bool UndirectedGraph::isBipartite() const
 		uint element = queue.front();
 
 		for (uint i = 0; i < getDegree(element); i++)
-			if (!visited[graph[element][i]])
+			if (!visited[adjacencyList[element][i]])
 			{
-				queue.push(graph[element][i]);
-				visited[graph[element][i]] = true;
-				color[graph[element][i]] = (color[element] == 0 ? 1 : 0);
+				queue.push(adjacencyList[element][i]);
+				visited[adjacencyList[element][i]] = true;
+				color[adjacencyList[element][i]] = (color[element] == 0 ? 1 : 0);
 			}
-			else if (color[element] == color[graph[element][i]])
+			else if (color[element] == color[adjacencyList[element][i]])
 				return false;
 
 		queue.pop();
@@ -167,11 +161,11 @@ std::vector<uint> UndirectedGraph::breadthFirstSearch(uint vertex) const
 		uint element = queue.front();
 
 		for (uint i = 0; i < getDegree(element); i++)
-			if (!visited[graph[element][i]])
+			if (!visited[adjacencyList[element][i]])
 			{
-				connectedComponent.push_back(graph[element][i]);
-				queue.push(graph[element][i]);
-				visited[graph[element][i]] = true;
+				connectedComponent.push_back(adjacencyList[element][i]);
+				queue.push(adjacencyList[element][i]);
+				visited[adjacencyList[element][i]] = true;
 			}
 		queue.pop();
 	}
@@ -198,15 +192,15 @@ std::vector<uint> UndirectedGraph::depthFirstSearch(uint vertex) const
 		bool found = false;
 
 		for (index = 0; index < getDegree(element) && !found; index++)
-			if (!visited[graph[element][index]])
+			if (!visited[adjacencyList[element][index]])
 				found = true;
 
 		if (found)
 		{
 			index--;
-			stack.push(graph[element][index]);
-			visited[graph[element][index]] = true;
-			connectedComponent.push_back(graph[element][index]);
+			stack.push(adjacencyList[element][index]);
+			visited[adjacencyList[element][index]] = true;
+			connectedComponent.push_back(adjacencyList[element][index]);
 		}
 		else
 			stack.pop();
@@ -253,14 +247,14 @@ std::vector<std::vector<bool>> UndirectedGraph::getRoadMatrix() const
 	return roadMatrix;
 }
 
-std::vector<uint> UndirectedGraph::getRoadDistance(uint vertex) const
+std::vector<int> UndirectedGraph::getRoadDistance(uint vertex) const
 {
 	if (!isValidVertex(vertex))
-		return std::vector<uint>();
+		return std::vector<int>();
 
 	std::vector<bool> visited(vertices);
 	std::queue<uint> queue;
-	std::vector<uint> roadDistance(vertices, 0x3f3f3f3f);
+	std::vector<int> roadDistance(vertices, -1);
 
 	queue.push(vertex);
 	visited[vertex] = true;
@@ -271,26 +265,16 @@ std::vector<uint> UndirectedGraph::getRoadDistance(uint vertex) const
 		uint element = queue.front();
 
 		for (uint i = 0; i < getDegree(element); i++)
-			if (!visited[graph[element][i]])
+			if (!visited[adjacencyList[element][i]])
 			{
-				roadDistance[graph[element][i]] = roadDistance[element] + 1;
-				queue.push(graph[element][i]);
-				visited[graph[element][i]] = true;
+				roadDistance[adjacencyList[element][i]] = roadDistance[element] + 1;
+				queue.push(adjacencyList[element][i]);
+				visited[adjacencyList[element][i]] = true;
 			}
 		queue.pop();
 	}
 
 	return roadDistance;
-}
-
-// -- Private methods
-
-bool UndirectedGraph::isValidVertex(uint vertex) const
-{
-	if (vertex < 0 || vertex > vertices - 1)
-		return false;
-
-	return true;
 }
 
 // -- Overloaded Operators
@@ -302,134 +286,108 @@ UndirectedGraph& UndirectedGraph::operator=(const UndirectedGraph& source)
 
 	vertices = source.vertices;
 	edges = source.edges;
-	graph = source.graph;
+	adjacencyList = source.adjacencyList;
 
 	return *this;
 }
 
-std::ofstream& operator<<(std::ofstream& ofs, const UndirectedGraph& g)
-{
-	for (uint i = 0; i < g.graph.size(); i++)
-	{
-		ofs << i << " | ";
-		for (uint j = 0; j < g.graph[i].size(); j++)
-			ofs << g.graph[i][j] << " ";
-		ofs << "\n";
-	}
-
-	return ofs;
-}
-
-std::ostream& operator<<(std::ostream& os, const UndirectedGraph& g)
-{
-	for (uint i = 0; i < g.graph.size(); i++)
-	{
-		os << i << " | ";
-		for (uint j = 0; j < g.graph[i].size(); j++)
-			os << g.graph[i][j] << " ";
-		os << "\n";
-	}
-
-	return os;
-}
-
-std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& g)
-{
-	ifs >> g.vertices >> g.edges;
-	g.graph.resize(g.vertices);
-
-	for (uint i = 0; i < g.edges; i++)
-	{
-		uint x, y;
-		ifs >> x >> y;
-		g.graph[x].push_back(y);
-		g.graph[y].push_back(x);
-	}
-
-	return ifs;
-}
-
-std::istream& operator>>(std::istream& is, UndirectedGraph& g)
-{
-	is >> g.vertices >> g.edges;
-	g.graph.resize(g.vertices);
-
-	for (uint i = 0; i < g.edges; i++)
-	{
-		uint x, y;
-		is >> x >> y;
-		g.graph[x].push_back(y);
-		g.graph[y].push_back(x);
-	}
-
-	return is;
-}
-
-UndirectedGraph operator+(const UndirectedGraph& graphOne, const UndirectedGraph& graphTwo)
+UndirectedGraph UndirectedGraph::operator+(const UndirectedGraph& source)
 {
 	// TODO: better way to handle this
-	if (graphOne.vertices != graphTwo.vertices || graphOne.vertices == 0)
+	if (this->vertices != source.vertices || this->vertices == 0)
 		return UndirectedGraph();
 
 	UndirectedGraph sumGraph;
-	sumGraph.vertices = graphOne.vertices;
-	sumGraph.graph.resize(sumGraph.vertices);
+	sumGraph.vertices = this->vertices;
+	sumGraph.adjacencyList.resize(sumGraph.vertices);
 
 	for (uint i = 0; i < sumGraph.vertices; i++)
 	{
-		for (uint j = 0; j < graphOne.graph[i].size(); j++)
-			sumGraph.graph[i].push_back(graphOne.graph[i][j]);
+		for (uint j = 0; j < this->adjacencyList[i].size(); j++)
+			sumGraph.adjacencyList[i].push_back(this->adjacencyList[i][j]);
 
-		for (uint j = 0; j < graphTwo.graph[i].size(); j++)
+		for (uint j = 0; j < source.adjacencyList[i].size(); j++)
 		{
 			bool found = false;
 
-			for (uint k = 0; k < sumGraph.graph[i].size(); k++)
-				if (sumGraph.graph[i][k] == graphTwo.graph[i][j])
+			for (uint k = 0; k < sumGraph.adjacencyList[i].size(); k++)
+				if (sumGraph.adjacencyList[i][k] == source.adjacencyList[i][j])
 					found = true;
 
 			if (!found)
-				sumGraph.graph[i].push_back(graphTwo.graph[i][j]);
+				sumGraph.adjacencyList[i].push_back(source.adjacencyList[i][j]);
 		}
 	}
 
 	return sumGraph;
 }
 
-UndirectedGraph operator-(const UndirectedGraph& graphOne, const UndirectedGraph& graphTwo)
+UndirectedGraph UndirectedGraph::operator-(const UndirectedGraph& source)
 {
 	// TODO: better way to handle this
-	if (graphOne.vertices != graphTwo.vertices || graphOne.vertices == 0)
+	if (this->vertices != source.vertices || this->vertices == 0)
 		return UndirectedGraph();
 
 	UndirectedGraph difGraph;
-	difGraph.vertices = graphOne.vertices;
-	difGraph.graph.resize(difGraph.vertices);
+	difGraph.vertices = this->vertices;
+	difGraph.adjacencyList.resize(difGraph.vertices);
 
-	for (uint i = 0; i < graphOne.graph.size(); i++)
+	for (uint i = 0; i < this->adjacencyList.size(); i++)
 	{
-		for (uint j = 0; j < graphOne.graph[i].size(); j++)
+		for (uint j = 0; j < this->adjacencyList[i].size(); j++)
 		{
 			bool found = false;
-			for (uint k = 0; k < graphTwo.graph[i].size(); k++)
-				if (graphOne.graph[i][j] == graphTwo.graph[i][k])
+			for (uint k = 0; k < source.adjacencyList[i].size(); k++)
+				if (this->adjacencyList[i][j] == source.adjacencyList[i][k])
 					found = true;
 
 			if (!found)
-				difGraph.graph[i].push_back(graphOne.graph[i][j]);
+				difGraph.adjacencyList[i].push_back(this->adjacencyList[i][j]);
 		}
 	}
 
 	return difGraph;
 }
 
-bool operator==(const UndirectedGraph& graphOne, const UndirectedGraph& graphTwo)
+bool UndirectedGraph::operator==(const UndirectedGraph& source)
 {
-	if (graphOne.vertices != graphTwo.vertices || graphOne.edges != graphTwo.edges || graphOne.graph != graphTwo.graph)
+	if (this->vertices != source.vertices || this->edges != source.edges || this->adjacencyList != source.adjacencyList)
 		return false;
 
-	if ((graphOne + graphTwo).edges != graphOne.edges)
+	if (((*this) + source).edges != this->edges)
 		return false;
 
 	return true;
+}
+
+std::istream& operator>>(std::istream& is, UndirectedGraph& graph)
+{
+	is >> graph.vertices >> graph.edges;
+	graph.adjacencyList.resize(graph.vertices);
+
+	for (uint i = 0; i < graph.edges; i++)
+	{
+		uint x, y;
+		is >> x >> y;
+		graph.adjacencyList[x].push_back(y);
+		graph.adjacencyList[y].push_back(x);
+	}
+
+	return is;
+}
+
+std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& graph)
+{
+	ifs >> graph.vertices >> graph.edges;
+	graph.adjacencyList.resize(graph.vertices);
+
+	for (uint i = 0; i < graph.edges; i++)
+	{
+		uint x, y;
+		ifs >> x >> y;
+		graph.adjacencyList[x].push_back(y);
+		graph.adjacencyList[y].push_back(x);
+	}
+
+	return ifs;
 }
