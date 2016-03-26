@@ -77,6 +77,9 @@ bool UndirectedGraph::isConnected() const
 	if (vertices == 1)
 		return true;
 
+	if (!edges)
+		return false;
+
 	if (getConnectedComponents().size() == 1)
 		return true;
 
@@ -139,6 +142,28 @@ bool UndirectedGraph::isBipartite() const
 
 		queue.pop();
 	}
+
+	return true;
+}
+
+bool UndirectedGraph::isBiconnected() const
+{
+	if (!vertices || !edges)
+		return false;
+
+	std::vector<bool> visited(vertices, false);
+	std::vector<int> parent(vertices, -1);
+	std::vector<uint> discoveryTime(vertices);
+	std::vector<uint> low(vertices);
+
+	// Check if the graph has at least one articulation point
+	if (hasArticulationPoint(0, visited, parent, discoveryTime, low))
+		return false;
+
+	// Check if the graph is connected
+	for (uint i = 0; i < visited.size(); i++)
+		if (!visited[i])
+			return false;
 
 	return true;
 }
@@ -209,30 +234,11 @@ std::vector<uint> UndirectedGraph::depthFirstSearch(uint vertex) const
 	return connectedComponent;
 }
 
-std::vector<std::vector<uint>> UndirectedGraph::getConnectedComponents() const
-{
-	std::vector<std::vector<uint>> connectedComponents;
-	std::vector<bool> visited(vertices, false);
-
-	for (uint i = 0; i < vertices; i++)
-	{
-		if (!visited[i])
-		{
-			connectedComponents.push_back(depthFirstSearch(i));
-
-			for (uint j = 0; j < connectedComponents.back().size(); j++)
-				visited[connectedComponents.back()[j]] = true;
-		}
-	}
-
-	return connectedComponents;
-}
-
 std::vector<std::vector<bool>> UndirectedGraph::getRoadMatrix() const
 {
 	std::vector<std::vector<bool>> roadMatrix(vertices);
 	std::vector<std::vector<uint>> connectedComponents = getConnectedComponents();
-	
+
 	for (uint i = 0; i < roadMatrix.size(); i++)
 		roadMatrix[i].resize(vertices, false);
 
@@ -276,6 +282,167 @@ std::vector<int> UndirectedGraph::getRoadDistance(uint vertex) const
 
 	return roadDistance;
 }
+
+std::vector<std::vector<uint>> UndirectedGraph::getConnectedComponents() const
+{
+	std::vector<std::vector<uint>> connectedComponents;
+	std::vector<bool> visited(vertices, false);
+
+	for (uint i = 0; i < vertices; i++)
+	{
+		if (!visited[i])
+		{
+			connectedComponents.push_back(depthFirstSearch(i));
+
+			for (uint j = 0; j < connectedComponents.back().size(); j++)
+				visited[connectedComponents.back()[j]] = true;
+		}
+	}
+
+	return connectedComponents;
+}
+
+std::vector<std::vector<uint>> UndirectedGraph::getBiconnectedComponents() const
+{
+	std::stack<uint> stack;
+	std::vector<int> parent(vertices, -1);					// Represents the parent of the vertex in DFS-tree.
+	std::vector<uint> low(vertices, 0);						// Represents the lowest depth of a vertex connected to the index vertex through a back-edge in DFS-tree.
+	std::vector<uint> depth(vertices, 0);					// Represents the depth of the vertex in DFS-tree.
+	std::vector<std::vector<uint>> biconnectedComponents;
+
+	for (uint vertex = 0; vertex < vertices; vertex++)
+		if (!depth[vertex])
+			getBiconnectedComponents(vertex, parent, depth, low, stack, biconnectedComponents);
+
+	return biconnectedComponents;
+}
+
+std::vector<uint> UndirectedGraph::getArticulationPoints() const
+{
+	std::vector<bool> visited(vertices, false);
+	std::vector<int> parent(vertices, -1);
+	std::vector<uint> discoveryTime(vertices);
+	std::vector<uint> low(vertices);
+	std::vector<uint> articulationPoints;
+
+	for (uint i = 0; i < vertices; i++)
+		if (!visited[i])
+			articulationPoint(i, visited, parent, discoveryTime, low, articulationPoints);
+
+	return articulationPoints;
+}
+
+// -- End of Public methods
+
+// -- Private methods
+
+void UndirectedGraph::articulationPoint(uint vertex, std::vector<bool>& visited, std::vector<int>& parent,
+	std::vector<uint>& discoveryTime, std::vector<uint>& low, std::vector<uint>& articulationPoints) const
+{
+	if (!isValidVertex(vertex))
+		return;
+
+	static uint time = 0;
+	uint children = 0;
+	visited[vertex] = true;
+	discoveryTime[vertex] = low[vertex] = ++time;
+
+	for (uint i = 0; i < adjacencyList[vertex].size(); i++)
+	{
+		if (!visited[adjacencyList[vertex][i]])
+		{
+			children++;
+			parent[adjacencyList[vertex][i]] = vertex;
+			articulationPoint(adjacencyList[vertex][i], visited, parent, discoveryTime, low, articulationPoints);
+
+			if (low[adjacencyList[vertex][i]] < low[vertex])
+				low[vertex] = low[adjacencyList[vertex][i]];
+
+			if ((parent[vertex] == -1 && children > 1) || (parent[vertex] != -1 && low[adjacencyList[vertex][i]] >= discoveryTime[vertex]))
+				articulationPoints.push_back(vertex);
+		}
+		else if ((adjacencyList[vertex][i] != parent[vertex]) && (discoveryTime[adjacencyList[vertex][i]] < low[vertex]))
+			low[vertex] = discoveryTime[adjacencyList[vertex][i]];
+	}
+}
+
+// Same as articulationPoint, just we don't need all articulation points to check if a graph is biconnected.
+bool UndirectedGraph::hasArticulationPoint(uint vertex, std::vector<bool>& visited, std::vector<int>& parent,
+	std::vector<uint>& discoveryTime, std::vector<uint>& low) const
+{
+	if (!isValidVertex(vertex))
+		return false;
+
+	static uint time = 0;
+	uint children = 0;
+	visited[vertex] = true;
+	discoveryTime[vertex] = low[vertex] = ++time;
+
+	for (uint i = 0; i < adjacencyList[vertex].size(); i++)
+	{
+		if (!visited[adjacencyList[vertex][i]])
+		{
+			children++;
+			parent[adjacencyList[vertex][i]] = vertex;
+			
+			if (hasArticulationPoint(adjacencyList[vertex][i], visited, parent, discoveryTime, low))
+				return true;
+
+			if (low[adjacencyList[vertex][i]] < low[vertex])
+				low[vertex] = low[adjacencyList[vertex][i]];
+
+			if ((parent[vertex] == -1 && children > 1) || 
+				(parent[vertex] != -1 && low[adjacencyList[vertex][i]] >= discoveryTime[vertex]))
+				return true;
+		}
+		else if ((adjacencyList[vertex][i] != parent[vertex]) && 
+			(discoveryTime[adjacencyList[vertex][i]] < low[vertex]))
+			low[vertex] = discoveryTime[adjacencyList[vertex][i]];
+	}
+
+	return false;
+}
+
+void UndirectedGraph::getBiconnectedComponents(uint vertex, std::vector<int>& parent, std::vector<uint>& depth, 
+	std::vector<uint>& low, std::stack<uint>& stack, std::vector<std::vector<uint>>& biconnectedComponents) const
+{
+	if (!isValidVertex(vertex))
+		return;
+
+	static uint currentDepth = 0;
+	stack.push(vertex);
+	depth[vertex] = low[vertex] = ++currentDepth;
+
+	for (std::vector<uint>::const_iterator neighbour = adjacencyList[vertex].begin(); neighbour != adjacencyList[vertex].end(); neighbour++)
+	{
+		if (!depth[*neighbour])
+		{
+			parent[*neighbour] = vertex;
+			getBiconnectedComponents(*neighbour, parent, depth, low, stack, biconnectedComponents);
+			low[vertex] = std::min(low[vertex], low[*neighbour]);
+
+			// Check if vertex is an articulation point.
+			if (low[*neighbour] >= depth[vertex])
+			{
+				biconnectedComponents.push_back(std::vector<uint>());
+				std::vector<std::vector<uint>>::reverse_iterator iterator = biconnectedComponents.rbegin();
+				while (stack.top() != *neighbour)
+				{
+					iterator->push_back(stack.top());
+					stack.pop();
+				}
+				iterator->push_back(*neighbour);
+				stack.pop();
+				iterator->push_back(vertex);
+			}
+		}
+		// Check if neighbour is an ancestor of vertex in dfs tree.
+		else if (*neighbour != parent[vertex])
+			low[vertex] = std::min(low[vertex], depth[*neighbour]);
+	}
+}
+
+// -- End of Private methods
 
 // -- Overloaded Operators
 
@@ -360,6 +527,10 @@ bool UndirectedGraph::operator==(const UndirectedGraph& source)
 	return true;
 }
 
+// -- End of Overloaded Operators
+
+// -- Friend methods/operators
+
 std::istream& operator>>(std::istream& is, UndirectedGraph& graph)
 {
 	is >> graph.vertices >> graph.edges;
@@ -391,3 +562,5 @@ std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& graph)
 
 	return ifs;
 }
+
+// -- End of Friend methods/operators
