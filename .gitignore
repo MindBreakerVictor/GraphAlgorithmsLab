@@ -1,8 +1,4 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
+﻿/.vs
 /GraphAlgorithms/Release
 /Release
 /ipch/GRAPHALGORITHMS-131b0931
