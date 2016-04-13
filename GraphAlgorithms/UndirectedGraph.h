@@ -11,21 +11,21 @@ class UndirectedGraph : public Graph
 		UndirectedGraph(const UndirectedGraph& source) : Graph(source._vertices, source._edges, source._adjacencyList) { }
 		~UndirectedGraph() { };
 
-		uint32_t getDegree(uint32_t vertex) const;
-		uint32_t getMinDegree() const;
-		uint32_t getMaxDegree() const;
+		uint32_t getDegree(uint32_t vertex) const override;
+		uint32_t getMinDegree() const override;
+		uint32_t getMaxDegree() const override;
 
-		double getDensity() const { return  2 * Graph::getDensity(); }
+		double getDensity() const override { return  2 * Graph::getDensity(); }
 
-		virtual bool isComplete() const;
-		virtual bool isRegular() const;
+		virtual bool isComplete() const override;
+		virtual bool isRegular() const override;
 		virtual bool isConnected() const;
 		virtual bool isHamiltonian() const;
 		virtual bool isEulerian() const;
 		virtual bool isBipartite() const;
 		bool isBiconnected() const;
 		
-		virtual Vector<Vector<bool>> getRoadMatrix() const;
+		virtual Vector<Vector<bool>> getRoadMatrix() const override;
 
 		virtual Vector<Vector<uint32_t>> getConnectedComponents() const;
 		Vector<Vector<uint32_t>> getBiconnectedComponents() const;	// The way it gives the biconnectedComponents have to be reworked.

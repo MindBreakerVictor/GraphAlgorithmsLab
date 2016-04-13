@@ -20,7 +20,7 @@ uint32_t UndirectedGraph::getDegree(uint32_t vertex) const
 	if (!isValidVertex(vertex))
 		return 0;
 
-	return _adjacencyList[vertex].size();
+	return (uint32_t)_adjacencyList[vertex].size();
 }
 
 uint32_t UndirectedGraph::getMinDegree() const

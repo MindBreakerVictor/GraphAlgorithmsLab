@@ -4,3 +4,5 @@
 /ipch/GRAPHALGORITHMS-131b0931
 /.vs
 *.ipch
+/x64/Debug
+/GraphAlgorithms/x64/Debug
