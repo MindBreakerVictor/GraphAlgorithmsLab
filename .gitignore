@@ -2,3 +2,5 @@
 /GraphAlgorithms/Release
 /Release
 /ipch/GRAPHALGORITHMS-131b0931
+/.vs
+*.ipch

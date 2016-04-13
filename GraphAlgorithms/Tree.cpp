@@ -31,7 +31,7 @@ uint32_t Tree::getDiameter() const
 	srand((uint32_t)time(NULL));
 	uint32_t vertex = rand() % _vertices;
 	uint32_t firstLeaf = *breadthFirstSearch(vertex).rbegin();								// The last element discovered by BFS.
-	std::vector<int> roadDistance = getRoadDistance(firstLeaf);								// Get the distance from firstLeaf to all vertices in the tree.
+	Vector<int> roadDistance = getRoadDistance(firstLeaf);									// Get the distance from firstLeaf to all vertices in the tree.
 	uint32_t diameter = *std::max_element(roadDistance.cbegin(), roadDistance.cend()) + 1;	// Set the diameter to the highest value from roadDistance + 1.
 
 	return diameter;
