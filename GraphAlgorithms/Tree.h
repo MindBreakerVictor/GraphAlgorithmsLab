@@ -20,6 +20,8 @@ class Tree : public UndirectedGraph
 		bool isEulerian() const override { return false; }
 		bool isBipartite() const override { return true; }
 
+		Vector<uint32_t> getCenter() const;
+
 		Vector<Vector<bool>> getRoadMatrix() const override { return Vector<Vector<bool>>(_vertices, Vector<bool>(_vertices, true)); }
 		Vector<Vector<uint32_t>> getConnectedComponents() const override { return _adjacencyList; }
 };

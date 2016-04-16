@@ -6,3 +6,4 @@
 *.ipch
 /x64/Debug
 /GraphAlgorithms/x64/Debug
+/GraphAlgorithms/Debug
