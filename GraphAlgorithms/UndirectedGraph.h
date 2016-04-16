@@ -8,8 +8,7 @@ class UndirectedGraph : public Graph
 	public:
 		UndirectedGraph() : Graph() { }
 		UndirectedGraph(std::ifstream& ifs);
-		UndirectedGraph(const UndirectedGraph& source) : Graph(source._vertices, source._edges, source._adjacencyList) { }
-		~UndirectedGraph() { };
+		UndirectedGraph(const UndirectedGraph& source) : Graph(source) { }
 
 		uint32_t getDegree(uint32_t vertex) const override;
 		uint32_t getMinDegree() const override;
@@ -42,6 +41,9 @@ class UndirectedGraph : public Graph
 		friend std::istream& operator>>(std::istream& is, UndirectedGraph& graph);
 		friend std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& graph);
 
+	protected:
+		UndirectedGraph(uint32_t vertices) : Graph(vertices) { }
+
 	private:
 		void articulationPoint(uint32_t vertex, Vector<bool>& visited, Vector<int>& parent,
 			Vector<uint32_t>& discoveryTime, Vector<uint32_t>& low, Vector<uint32_t>& articulationPoints) const;
@@ -51,8 +53,5 @@ class UndirectedGraph : public Graph
 
 		void getBiconnectedComponents(uint32_t vertex, Vector<int>& parent, Vector<uint32_t>& depth, 
 			Vector<uint32_t>& low, Stack<uint32_t>& stack, Vector<Vector<uint32_t>>& biconnectedComponents) const;
-
-	protected:
-		UndirectedGraph(uint32_t vertices) : Graph(vertices) { }
 };
 

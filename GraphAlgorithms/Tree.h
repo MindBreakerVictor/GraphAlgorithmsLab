@@ -9,6 +9,7 @@ class Tree : public UndirectedGraph
 		Tree() : UndirectedGraph() { }
 		Tree(uint32_t vertices);
 		Tree(std::ifstream& ifs);
+		Tree(const Tree& source) : UndirectedGraph(source) { }
 
 		uint32_t getDiameter() const;
 		uint32_t getRadius() const { return (uint32_t)(getDiameter() / 2); }

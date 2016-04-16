@@ -4,6 +4,11 @@
 
 class Graph
 {
+	protected:
+		Graph() : _vertices(0), _edges(0), _adjacencyList(0) { }
+		explicit Graph(uint32_t vertices) : _vertices(vertices), _edges(vertices - 1), _adjacencyList(vertices) { }
+		Graph(const Graph& source) : _vertices(source._vertices), _edges(source._edges), _adjacencyList(source._adjacencyList) { }
+
 	public:
 		virtual ~Graph() { }
 
@@ -29,14 +34,10 @@ class Graph
 		friend std::ofstream& operator<<(std::ofstream& ofs, const Graph& graph);
 
 	protected:
+		bool isValidVertex(uint32_t vertex) const;
+
+	protected:
 		Vector<Vector<uint32_t>> _adjacencyList;
 		uint32_t _vertices, _edges;
-
-		Graph() : _vertices(0), _edges(0), _adjacencyList(0) { }
-		explicit Graph(uint32_t vertices) : _vertices(vertices), _edges(vertices - 1), _adjacencyList(vertices) { }
-		Graph(uint32_t vertices, uint32_t edges, Vector<Vector<uint32_t>> adjacencyList) :
-			_vertices(_vertices), _edges(_edges), _adjacencyList(_adjacencyList) { }
-
-		bool isValidVertex(uint32_t vertex) const;
 };
 

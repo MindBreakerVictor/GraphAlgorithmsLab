@@ -8,8 +8,7 @@ class DirectedGraph : public Graph
 	public:
 		DirectedGraph() : Graph() { }
 		DirectedGraph(std::ifstream& input);
-		DirectedGraph(const DirectedGraph& source) : Graph(source._vertices, source._edges, source._adjacencyList) { }
-		~DirectedGraph() { }
+		DirectedGraph(const DirectedGraph& source) : Graph(source) { }
 
 		uint32_t getDegree(uint32_t vertex) const override;
 		uint32_t getInDegree(uint32_t vertex) const;
