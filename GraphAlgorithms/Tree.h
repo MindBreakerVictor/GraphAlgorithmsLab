@@ -7,9 +7,9 @@ class Tree : public UndirectedGraph
 {
 	public:
 		Tree() : UndirectedGraph() { }
-		Tree(uint32_t vertices);
+		Tree(uint32_t const& vertices);
 		Tree(std::ifstream& ifs);
-		Tree(const Tree& source) : UndirectedGraph(source) { }
+		Tree(Tree const& source) : UndirectedGraph(source) { }
 
 		uint32_t getDiameter() const;
 		uint32_t getRadius() const { return (uint32_t)(getDiameter() / 2); }
@@ -24,6 +24,5 @@ class Tree : public UndirectedGraph
 		Vector<uint32_t> getCenter() const;
 
 		Vector<Vector<bool>> getRoadMatrix() const override { return Vector<Vector<bool>>(_vertices, Vector<bool>(_vertices, true)); }
-		Vector<Vector<uint32_t>> getConnectedComponents() const override { return _adjacencyList; }
 };
 

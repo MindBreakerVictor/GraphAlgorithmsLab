@@ -1,20 +1,29 @@
 #include "PCH.h"
 #include "DirectedGraph.h"
 
-DirectedGraph::DirectedGraph(std::ifstream& input)
+DirectedGraph::DirectedGraph(std::ifstream& ifs, bool const& weighted)
 {
-	input >> _vertices >> _edges;
+	_weighted = weighted;
+	ifs >> _vertices >> _edges;
 	_adjacencyList.resize(_vertices);
 
-	for (uint32_t i = 0; i < _edges; i++)
-	{
-		uint32_t x, y;
-		input >> x >> y;
-		_adjacencyList[x].push_back(y);
-	}
+	if (!isWeighted())
+		for (uint32_t i = 0; i < _edges; i++)
+		{
+			uint32_t x, y;
+			ifs >> x >> y;
+			_adjacencyList[x].push_back(std::make_pair(y, 0));
+		}
+	else
+		for (uint32_t i = 0; i < _edges; i++)
+		{
+			uint32_t x, y, w;
+			ifs >> x >> y >> w;
+			_adjacencyList[x].push_back(std::make_pair(y, w));
+		}
 }
 
-uint32_t DirectedGraph::getDegree(uint32_t vertex) const
+uint32_t DirectedGraph::getDegree(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return 0;
@@ -22,7 +31,7 @@ uint32_t DirectedGraph::getDegree(uint32_t vertex) const
 	return getInDegree(vertex) + getOutDegree(vertex);
 }
 
-uint32_t DirectedGraph::getInDegree(uint32_t vertex) const
+uint32_t DirectedGraph::getInDegree(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return 0;
@@ -32,19 +41,19 @@ uint32_t DirectedGraph::getInDegree(uint32_t vertex) const
 	for (uint32_t i = 0; i < _adjacencyList.size(); i++)
 	{
 		for (uint32_t j = 0; j < _adjacencyList[i].size(); j++)
-			if (_adjacencyList[i][j] == vertex)
+			if (_adjacencyList[i][j].first == vertex)
 				count++;
 	}
 
 	return count;
 }
 
-uint32_t DirectedGraph::getOutDegree(uint32_t vertex) const
+uint32_t DirectedGraph::getOutDegree(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return 0;
 
-	return (uint32_t)_adjacencyList[vertex].size();
+	return static_cast<uint32_t>(_adjacencyList[vertex].size());
 }
 
 uint32_t DirectedGraph::getMinDegree() const
@@ -142,7 +151,7 @@ bool DirectedGraph::isComplete() const
 		visited[i] = true;
 
 		for (uint32_t j = 0; j < _adjacencyList[i].size(); j++)
-			visited[_adjacencyList[i][j]] = true;
+			visited[_adjacencyList[i][j].first] = true;
 
 		for (uint32_t j = 0; j < visited.size(); j++)
 			if (!visited[j])
@@ -203,11 +212,12 @@ Vector<Vector<bool>> DirectedGraph::getRoadMatrix() const
 	return roadMatrix;
 }
 
-DirectedGraph& DirectedGraph::operator=(const DirectedGraph& source)
+DirectedGraph& DirectedGraph::operator=(DirectedGraph const& source)
 {
 	if (this == &source)
 		return *this;
 
+	_weighted = source._weighted;
 	_vertices = source._vertices;
 	_edges = source._edges;
 	_adjacencyList = source._adjacencyList;
@@ -215,7 +225,7 @@ DirectedGraph& DirectedGraph::operator=(const DirectedGraph& source)
 	return *this;
 }
 
-DirectedGraph DirectedGraph::operator+(const DirectedGraph& source) const
+DirectedGraph DirectedGraph::operator+(DirectedGraph const& source) const
 {
 	if (this->_vertices != source._vertices || this->_vertices == 0)
 		return DirectedGraph();
@@ -245,7 +255,7 @@ DirectedGraph DirectedGraph::operator+(const DirectedGraph& source) const
 	return sumGraph;
 }
 
-DirectedGraph DirectedGraph::operator-(const DirectedGraph& source) const
+DirectedGraph DirectedGraph::operator-(DirectedGraph const& source) const
 {
 	// TODO: better way to handle this
 	if (this->_vertices != this->_vertices || source._vertices == 0)
@@ -272,7 +282,7 @@ DirectedGraph DirectedGraph::operator-(const DirectedGraph& source) const
 	return difGraph;
 }
 
-bool DirectedGraph::operator==(const DirectedGraph& source) const
+bool DirectedGraph::operator==(DirectedGraph const& source) const
 {
 	if (this->_vertices != source._vertices || this->_edges != source._edges)
 		return false;
@@ -283,44 +293,70 @@ bool DirectedGraph::operator==(const DirectedGraph& source) const
 	return true;
 }
 
+void DirectedGraph::topologicalSort(uint32_t const& vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const
+{
+	visited[vertex] = true;
+
+	for (uint32_t i = 0; i < _adjacencyList[vertex].size(); i++)
+		if (!visited[_adjacencyList[vertex][i].first])
+			topologicalSort(_adjacencyList[vertex][i].first, visited, topSort);
+
+	topSort.push(vertex);
+}
+
 std::istream& operator>>(std::istream& is, DirectedGraph& graph)
 {
-	is >> graph._vertices >> graph._edges;
+	uint16_t weighted;
+	is >> graph._vertices >> graph._edges >> weighted;
+
+	graph._adjacencyList.~vector();
 	graph._adjacencyList.resize(graph._vertices);
 
-	for (uint32_t i = 0; i < graph._edges; i++)
-	{
-		uint32_t x, y;
-		is >> x >> y;
-		graph._adjacencyList[x].push_back(y);
-	}
+	graph._weighted = weighted ? true : false;
+
+	if (!graph.isWeighted())
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y;
+			is >> x >> y;
+			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
+		}
+	else
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y, w;
+			is >> x >> y >> w;
+			graph._adjacencyList[x].push_back(std::make_pair(y, w));
+		}
 
 	return is;
 }
 
 std::ifstream& operator>>(std::ifstream& ifs, DirectedGraph& graph)
 {
-	ifs >> graph._vertices >> graph._edges;
+	uint16_t weighted;
+	ifs >> graph._vertices >> graph._edges >> weighted;
+
+	graph._adjacencyList.~vector();
 	graph._adjacencyList.resize(graph._vertices);
 
-	for (uint32_t i = 0; i < graph._edges; i++)
-	{
-		uint32_t x, y;
-		ifs >> x >> y;
-		graph._adjacencyList[x].push_back(y);
-	}
+	graph._weighted = weighted ? true : false;
+
+	if (!graph.isWeighted())
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y;
+			ifs >> x >> y;
+			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
+		}
+	else
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y, w;
+			ifs >> x >> y >> w;
+			graph._adjacencyList[x].push_back(std::make_pair(y, w));
+		}
 
 	return ifs;
-}
-
-void DirectedGraph::topologicalSort(uint32_t vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const
-{
-	visited[vertex] = true;
-
-	for (uint32_t i = 0; i < _adjacencyList[vertex].size(); i++)
-		if (!visited[_adjacencyList[vertex][i]])
-			topologicalSort(_adjacencyList[vertex][i], visited, topSort);
-
-	topSort.push(vertex);
 }
 

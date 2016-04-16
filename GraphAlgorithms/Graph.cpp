@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Graph.h"
 
-Vector<uint32_t> Graph::breadthFirstSearch(uint32_t vertex) const
+Vector<uint32_t> Graph::breadthFirstSearch(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return Vector<uint32_t>();
@@ -19,11 +19,11 @@ Vector<uint32_t> Graph::breadthFirstSearch(uint32_t vertex) const
 		uint32_t element = queue.front();
 
 		for (uint32_t i = 0; i < _adjacencyList[element].size(); i++)
-			if (!visited[_adjacencyList[element][i]])
+			if (!visited[_adjacencyList[element][i].first])
 			{
-				connectedComponent.push_back(_adjacencyList[element][i]);
-				queue.push(_adjacencyList[element][i]);
-				visited[_adjacencyList[element][i]] = true;
+				queue.push(_adjacencyList[element][i].first);
+				visited[_adjacencyList[element][i].first] = true;
+				connectedComponent.push_back(_adjacencyList[element][i].first);
 			}
 		queue.pop();
 	}
@@ -31,7 +31,7 @@ Vector<uint32_t> Graph::breadthFirstSearch(uint32_t vertex) const
 	return connectedComponent;
 }
 
-Vector<uint32_t> Graph::depthFirstSearch(uint32_t vertex) const
+Vector<uint32_t> Graph::depthFirstSearch(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return Vector<uint32_t>();
@@ -50,15 +50,15 @@ Vector<uint32_t> Graph::depthFirstSearch(uint32_t vertex) const
 		bool found = false;
 
 		for (index = 0; index < _adjacencyList[element].size() && !found; index++)
-			if (!visited[_adjacencyList[element][index]])
+			if (!visited[_adjacencyList[element][index].first])
 				found = true;
 
 		if (found)
 		{
 			index--;
-			stack.push(_adjacencyList[element][index]);
-			visited[_adjacencyList[element][index]] = true;
-			connectedComponent.push_back(_adjacencyList[element][index]);
+			stack.push(_adjacencyList[element][index].first);
+			visited[_adjacencyList[element][index].first] = true;
+			connectedComponent.push_back(_adjacencyList[element][index].first);
 		}
 		else
 			stack.pop();
@@ -67,7 +67,7 @@ Vector<uint32_t> Graph::depthFirstSearch(uint32_t vertex) const
 	return connectedComponent;
 }
 
-Vector<int> Graph::getRoadDistance(uint32_t vertex) const
+Vector<int> Graph::getRoadDistance(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return Vector<int>();
@@ -85,11 +85,11 @@ Vector<int> Graph::getRoadDistance(uint32_t vertex) const
 		uint32_t element = queue.front();
 
 		for (uint32_t i = 0; i < _adjacencyList[element].size(); i++)
-			if (!visited[_adjacencyList[element][i]])
+			if (!visited[_adjacencyList[element][i].first])
 			{
-				roadDistance[_adjacencyList[element][i]] = roadDistance[element] + 1;
-				queue.push(_adjacencyList[element][i]);
-				visited[_adjacencyList[element][i]] = true;
+				roadDistance[_adjacencyList[element][i].first] = roadDistance[element] + 1;
+				queue.push(_adjacencyList[element][i].first);
+				visited[_adjacencyList[element][i].first] = true;
 			}
 		queue.pop();
 	}
@@ -97,34 +97,40 @@ Vector<int> Graph::getRoadDistance(uint32_t vertex) const
 	return roadDistance;
 }
 
-bool Graph::isValidVertex(uint32_t vertex) const
+bool Graph::isValidVertex(uint32_t const& vertex) const
 {
-	if (vertex < 0 || vertex > _vertices - 1)
+	if (vertex > _vertices - 1)
 		return false;
 
 	return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const Graph& graph)
+std::ostream& operator<<(std::ostream& os, Graph const& graph)
 {
 	for (uint32_t i = 0; i < graph._adjacencyList.size(); i++)
 	{
 		os << i << " | ";
 		for (uint32_t j = 0; j < graph._adjacencyList[i].size(); j++)
-			os << graph._adjacencyList[i][j] << ", ";
+			if (!graph.isWeighted())
+				os << graph._adjacencyList[i][j].first << ", ";
+			else
+				os << graph._adjacencyList[i][j].first << " - " << graph._adjacencyList[i][j].second << ", ";
 		os << "\n";
 	}
 
 	return os;
 }
 
-std::ofstream& operator<<(std::ofstream& ofs, const Graph& graph)
+std::ofstream& operator<<(std::ofstream& ofs, Graph const& graph)
 {
 	for (uint32_t i = 0; i < graph._adjacencyList.size(); i++)
 	{
 		ofs << i << " | ";
 		for (uint32_t j = 0; j < graph._adjacencyList[i].size(); j++)
-			ofs << (uint32_t)graph._adjacencyList[i][j] << ", ";
+			if (!graph.isWeighted())
+				ofs << graph._adjacencyList[i][j].first << ", ";
+			else
+				ofs << graph._adjacencyList[i][j].first << " - " << graph._adjacencyList[i][j].second << ", ";
 		ofs << "\n";
 	}
 

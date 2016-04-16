@@ -19,3 +19,6 @@ using Queue = std::queue<_Type>;
 template <class _Type>
 using Stack = std::stack<_Type>;
 
+template <class _Type1, class _Type2>
+using Pair = std::pair<_Type1, _Type2>;
+

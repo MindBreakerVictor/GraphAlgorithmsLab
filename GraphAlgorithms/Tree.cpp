@@ -1,28 +1,31 @@
 #include "PCH.h"
 #include "Tree.h"
 
-Tree::Tree(uint32_t vertices) : UndirectedGraph(vertices)
+Tree::Tree(uint32_t const& vertices) : UndirectedGraph(vertices)
 {
 	for (uint32_t i = 0; i < vertices - 1; i++)
 	{
 		uint32_t x, y;
 		std::cin >> x >> y;
-		_adjacencyList[x].push_back(y);
-		_adjacencyList[y].push_back(x);
+		_adjacencyList[x].push_back(std::make_pair(y, 0));
+		_adjacencyList[y].push_back(std::make_pair(x, 0));
 	}
 }
 
 Tree::Tree(std::ifstream& ifs)
 {
 	ifs >> _vertices;
+
+	_weighted = false;
+	_edges = _vertices - 1;
 	_adjacencyList.resize(_vertices);
 
 	for (uint32_t i = 0; i < _vertices - 1; i++)
 	{
 		uint32_t x, y;
 		ifs >> x >> y;
-		_adjacencyList[x].push_back(y);
-		_adjacencyList[y].push_back(x);
+		_adjacencyList[x].push_back(std::make_pair(y, 0));
+		_adjacencyList[y].push_back(std::make_pair(x, 0));
 	}
 }
 
@@ -84,14 +87,14 @@ Vector<uint32_t> Tree::getCenter() const
 		bool found = false;
 
 		for (index = 0; index < _adjacencyList[element].size() && !found; index++)
-			if (!visited[_adjacencyList[element][index]])
+			if (!visited[_adjacencyList[element][index].first])
 				found = true;
 
 		if (found)
 		{
 			index--;
-			stack.push(_adjacencyList[element][index]);
-			visited[_adjacencyList[element][index]] = true;
+			stack.push(_adjacencyList[element][index].first);
+			visited[_adjacencyList[element][index].first] = true;
 		}
 		else
 			stack.pop();

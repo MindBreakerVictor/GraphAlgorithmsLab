@@ -1,26 +1,36 @@
 #include "PCH.h"
 #include "UndirectedGraph.h"
 
-UndirectedGraph::UndirectedGraph(std::ifstream& ifs)
+UndirectedGraph::UndirectedGraph(std::ifstream& ifs, bool const& weighted)
 {
+	_weighted = weighted;
 	ifs >> _vertices >> _edges;
 	_adjacencyList.resize(_vertices);
 
-	for (uint32_t i = 0; i < _edges; i++)
-	{
-		uint32_t x, y;
-		ifs >> x >> y;
-		_adjacencyList[x].push_back(y);
-		_adjacencyList[y].push_back(x);
-	}
+	if (!isWeighted())
+		for (uint32_t i = 0; i < _edges; i++)
+		{
+			uint32_t x, y;
+			ifs >> x >> y;
+			_adjacencyList[x].push_back(std::make_pair(y, 0));
+			_adjacencyList[y].push_back(std::make_pair(x, 0));
+		}
+	else
+		for (uint32_t i = 0; i < _edges; i++)
+		{
+			uint32_t x, y, w;
+			ifs >> x >> y >> w;
+			_adjacencyList[x].push_back(std::make_pair(y, w));
+			_adjacencyList[y].push_back(std::make_pair(x, w));
+		}
 }
 
-uint32_t UndirectedGraph::getDegree(uint32_t vertex) const
+uint32_t UndirectedGraph::getDegree(uint32_t const& vertex) const
 {
 	if (!isValidVertex(vertex))
 		return 0;
 
-	return (uint32_t)_adjacencyList[vertex].size();
+	return static_cast<uint32_t>(_adjacencyList[vertex].size());
 }
 
 uint32_t UndirectedGraph::getMinDegree() const
@@ -130,13 +140,13 @@ bool UndirectedGraph::isBipartite() const
 		uint32_t element = queue.front();
 
 		for (uint32_t i = 0; i < getDegree(element); i++)
-			if (!visited[_adjacencyList[element][i]])
+			if (!visited[_adjacencyList[element][i].first])
 			{
-				queue.push(_adjacencyList[element][i]);
-				visited[_adjacencyList[element][i]] = true;
-				color[_adjacencyList[element][i]] = (color[element] == 0 ? 1 : 0);
+				queue.push(_adjacencyList[element][i].first);
+				visited[_adjacencyList[element][i].first] = true;
+				color[_adjacencyList[element][i].first] = (color[element] == 0 ? 1 : 0);
 			}
-			else if (color[element] == color[_adjacencyList[element][i]])
+			else if (color[element] == color[_adjacencyList[element][i].first])
 				return false;
 
 		queue.pop();
@@ -235,7 +245,7 @@ Vector<uint32_t> UndirectedGraph::getArticulationPoints() const
 	return articulationPoints;
 }
 
-void UndirectedGraph::articulationPoint(uint32_t vertex, Vector<bool>& visited, Vector<int>& parent,
+void UndirectedGraph::articulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
 	Vector<uint32_t>& discoveryTime, Vector<uint32_t>& low, Vector<uint32_t>& articulationPoints) const
 {
 	if (!isValidVertex(vertex))
@@ -248,25 +258,27 @@ void UndirectedGraph::articulationPoint(uint32_t vertex, Vector<bool>& visited, 
 
 	for (uint32_t i = 0; i < _adjacencyList[vertex].size(); i++)
 	{
-		if (!visited[_adjacencyList[vertex][i]])
+		if (!visited[_adjacencyList[vertex][i].first])
 		{
 			children++;
-			parent[_adjacencyList[vertex][i]] = vertex;
-			articulationPoint(_adjacencyList[vertex][i], visited, parent, discoveryTime, low, articulationPoints);
+			parent[_adjacencyList[vertex][i].first] = vertex;
+			articulationPoint(_adjacencyList[vertex][i].first, visited, parent, discoveryTime, low, articulationPoints);
 
-			if (low[_adjacencyList[vertex][i]] < low[vertex])
-				low[vertex] = low[_adjacencyList[vertex][i]];
+			if (low[_adjacencyList[vertex][i].first] < low[vertex])
+				low[vertex] = low[_adjacencyList[vertex][i].first];
 
-			if ((parent[vertex] == -1 && children > 1) || (parent[vertex] != -1 && low[_adjacencyList[vertex][i]] >= discoveryTime[vertex]))
+			if ((parent[vertex] == -1 && children > 1) || 
+				(parent[vertex] != -1 && low[_adjacencyList[vertex][i].first] >= discoveryTime[vertex]))
 				articulationPoints.push_back(vertex);
 		}
-		else if ((_adjacencyList[vertex][i] != parent[vertex]) && (discoveryTime[_adjacencyList[vertex][i]] < low[vertex]))
-			low[vertex] = discoveryTime[_adjacencyList[vertex][i]];
+		else if ((_adjacencyList[vertex][i].first != parent[vertex]) && 
+			(discoveryTime[_adjacencyList[vertex][i].first] < low[vertex]))
+			low[vertex] = discoveryTime[_adjacencyList[vertex][i].first];
 	}
 }
 
 // Same as articulationPoint, just we don't need all articulation points to check if a graph is biconnected.
-bool UndirectedGraph::hasArticulationPoint(uint32_t vertex, Vector<bool>& visited, Vector<int>& parent,
+bool UndirectedGraph::hasArticulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
 	Vector<uint32_t>& discoveryTime, Vector<uint32_t>& low) const
 {
 	if (!isValidVertex(vertex))
@@ -279,30 +291,30 @@ bool UndirectedGraph::hasArticulationPoint(uint32_t vertex, Vector<bool>& visite
 
 	for (uint32_t i = 0; i < _adjacencyList[vertex].size(); i++)
 	{
-		if (!visited[_adjacencyList[vertex][i]])
+		if (!visited[_adjacencyList[vertex][i].first])
 		{
 			children++;
-			parent[_adjacencyList[vertex][i]] = vertex;
+			parent[_adjacencyList[vertex][i].first] = vertex;
 			
-			if (hasArticulationPoint(_adjacencyList[vertex][i], visited, parent, discoveryTime, low))
+			if (hasArticulationPoint(_adjacencyList[vertex][i].first, visited, parent, discoveryTime, low))
 				return true;
 
-			if (low[_adjacencyList[vertex][i]] < low[vertex])
-				low[vertex] = low[_adjacencyList[vertex][i]];
+			if (low[_adjacencyList[vertex][i].first] < low[vertex])
+				low[vertex] = low[_adjacencyList[vertex][i].first];
 
 			if ((parent[vertex] == -1 && children > 1) || 
-				(parent[vertex] != -1 && low[_adjacencyList[vertex][i]] >= discoveryTime[vertex]))
+				(parent[vertex] != -1 && low[_adjacencyList[vertex][i].first] >= discoveryTime[vertex]))
 				return true;
 		}
-		else if ((_adjacencyList[vertex][i] != parent[vertex]) && 
-			(discoveryTime[_adjacencyList[vertex][i]] < low[vertex]))
-			low[vertex] = discoveryTime[_adjacencyList[vertex][i]];
+		else if ((_adjacencyList[vertex][i].first != parent[vertex]) && 
+			(discoveryTime[_adjacencyList[vertex][i].first] < low[vertex]))
+			low[vertex] = discoveryTime[_adjacencyList[vertex][i].first];
 	}
 
 	return false;
 }
 
-void UndirectedGraph::getBiconnectedComponents(uint32_t vertex, Vector<int>& parent, Vector<uint32_t>& depth, 
+void UndirectedGraph::getBiconnectedComponents(uint32_t const& vertex, Vector<int>& parent, Vector<uint32_t>& depth,
 	Vector<uint32_t>& low, Stack<uint32_t>& stack, Vector<Vector<uint32_t>>& biconnectedComponents) const
 {
 	if (!isValidVertex(vertex))
@@ -312,40 +324,41 @@ void UndirectedGraph::getBiconnectedComponents(uint32_t vertex, Vector<int>& par
 	stack.push(vertex);
 	depth[vertex] = low[vertex] = ++currentDepth;
 
-	for (Vector<uint32_t>::const_iterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
+	for (Vector<Pair<uint32_t, uint32_t>>::const_iterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
 	{
-		if (!depth[*neighbour])
+		if (!depth[neighbour->first])
 		{
-			parent[*neighbour] = vertex;
-			getBiconnectedComponents(*neighbour, parent, depth, low, stack, biconnectedComponents);
-			low[vertex] = std::min(low[vertex], low[*neighbour]);
+			parent[neighbour->first] = vertex;
+			getBiconnectedComponents(neighbour->first, parent, depth, low, stack, biconnectedComponents);
+			low[vertex] = std::min(low[vertex], low[neighbour->first]);
 
 			// Check if vertex is an articulation point.
-			if (low[*neighbour] >= depth[vertex])
+			if (low[neighbour->first] >= depth[vertex])
 			{
 				biconnectedComponents.push_back(Vector<uint32_t>());
 				Vector<Vector<uint32_t>>::reverse_iterator iterator = biconnectedComponents.rbegin();
-				while (stack.top() != *neighbour)
+				while (stack.top() != neighbour->first)
 				{
 					iterator->push_back(stack.top());
 					stack.pop();
 				}
-				iterator->push_back(*neighbour);
+				iterator->push_back(neighbour->first);
 				stack.pop();
 				iterator->push_back(vertex);
 			}
 		}
 		// Check if neighbour is an ancestor of vertex in dfs tree.
-		else if (*neighbour != parent[vertex])
-			low[vertex] = std::min(low[vertex], depth[*neighbour]);
+		else if (neighbour->first != parent[vertex])
+			low[vertex] = std::min(low[vertex], depth[neighbour->first]);
 	}
 }
 
-UndirectedGraph& UndirectedGraph::operator=(const UndirectedGraph& source)
+UndirectedGraph& UndirectedGraph::operator=(UndirectedGraph const& source)
 {
 	if (this == &source)
 		return *this;
 
+	_weighted = source._weighted;
 	_vertices = source._vertices;
 	_edges = source._edges;
 	_adjacencyList = source._adjacencyList;
@@ -353,7 +366,7 @@ UndirectedGraph& UndirectedGraph::operator=(const UndirectedGraph& source)
 	return *this;
 }
 
-UndirectedGraph UndirectedGraph::operator+(const UndirectedGraph& source)
+UndirectedGraph UndirectedGraph::operator+(UndirectedGraph const& source)
 {
 	// TODO: better way to handle this
 	if (this->_vertices != source._vertices || this->_vertices == 0)
@@ -384,7 +397,7 @@ UndirectedGraph UndirectedGraph::operator+(const UndirectedGraph& source)
 	return sumGraph;
 }
 
-UndirectedGraph UndirectedGraph::operator-(const UndirectedGraph& source)
+UndirectedGraph UndirectedGraph::operator-(UndirectedGraph const& source)
 {
 	// TODO: better way to handle this
 	if (this->_vertices != source._vertices || this->_vertices == 0)
@@ -411,7 +424,7 @@ UndirectedGraph UndirectedGraph::operator-(const UndirectedGraph& source)
 	return difGraph;
 }
 
-bool UndirectedGraph::operator==(const UndirectedGraph& source)
+bool UndirectedGraph::operator==(UndirectedGraph const& source)
 {
 	if (this->_vertices != source._vertices || this->_edges != source._edges || this->_adjacencyList != source._adjacencyList)
 		return false;
@@ -424,32 +437,60 @@ bool UndirectedGraph::operator==(const UndirectedGraph& source)
 
 std::istream& operator>>(std::istream& is, UndirectedGraph& graph)
 {
-	is >> graph._vertices >> graph._edges;
+	uint16_t weighted;
+	is >> graph._vertices >> graph._edges >> weighted;
+
+	graph._adjacencyList.~vector();
 	graph._adjacencyList.resize(graph._vertices);
 
-	for (uint32_t i = 0; i < graph._edges; i++)
-	{
-		uint32_t x, y;
-		is >> x >> y;
-		graph._adjacencyList[x].push_back(y);
-		graph._adjacencyList[y].push_back(x);
-	}
+	graph._weighted = weighted ? true : false;
+
+	if (!graph.isWeighted())
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y;
+			is >> x >> y;
+			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
+			graph._adjacencyList[y].push_back(std::make_pair(x, 0));
+		}
+	else
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y, w;
+			is >> x >> y >> w;
+			graph._adjacencyList[x].push_back(std::make_pair(y, w));
+			graph._adjacencyList[y].push_back(std::make_pair(x, w));
+		}
 
 	return is;
 }
 
 std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& graph)
 {
-	ifs >> graph._vertices >> graph._edges;
+	uint16_t weighted;
+	ifs >> graph._vertices >> graph._edges >> weighted;
+
+	graph._adjacencyList.~vector();
 	graph._adjacencyList.resize(graph._vertices);
 
-	for (uint32_t i = 0; i < graph._edges; i++)
-	{
-		uint32_t x, y;
-		ifs >> x >> y;
-		graph._adjacencyList[x].push_back(y);
-		graph._adjacencyList[y].push_back(x);
-	}
+	graph._weighted = weighted ? true : false;
+
+	if (!graph.isWeighted())
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y;
+			ifs >> x >> y;
+			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
+			graph._adjacencyList[y].push_back(std::make_pair(x, 0));
+		}
+	else
+		for (uint32_t i = 0; i < graph._edges; i++)
+		{
+			uint32_t x, y, w;
+			ifs >> x >> y >> w;
+			graph._adjacencyList[x].push_back(std::make_pair(y, w));
+			graph._adjacencyList[y].push_back(std::make_pair(x, w));
+		}
 
 	return ifs;
 }

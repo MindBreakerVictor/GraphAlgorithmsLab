@@ -7,12 +7,12 @@ class DirectedGraph : public Graph
 {
 	public:
 		DirectedGraph() : Graph() { }
-		DirectedGraph(std::ifstream& input);
-		DirectedGraph(const DirectedGraph& source) : Graph(source) { }
+		DirectedGraph(std::ifstream& ifs, bool const& weighted = false);
+		DirectedGraph(DirectedGraph const& source) : Graph(source) { }
 
-		uint32_t getDegree(uint32_t vertex) const override;
-		uint32_t getInDegree(uint32_t vertex) const;
-		uint32_t getOutDegree(uint32_t vertex) const;
+		uint32_t getDegree(uint32_t const& vertex) const override;
+		uint32_t getInDegree(uint32_t const& vertex) const;
+		uint32_t getOutDegree(uint32_t const& vertex) const;
 
 		uint32_t getMinDegree() const override;
 		uint32_t getMinInDegree() const;
@@ -30,18 +30,18 @@ class DirectedGraph : public Graph
 		std::stack<uint32_t> getTopologicalSort() const;
 		//Vector<Vector<uint32_t>> getStronglyConnectedComponents() const;
 
-		DirectedGraph& operator=(const DirectedGraph& source);
+		DirectedGraph& operator=(DirectedGraph const& source);
 
-		DirectedGraph operator+(const DirectedGraph& source) const;
-		DirectedGraph operator-(const DirectedGraph& source) const;
+		DirectedGraph operator+(DirectedGraph const& source) const;
+		DirectedGraph operator-(DirectedGraph const& source) const;
 
-		bool operator==(const DirectedGraph& source) const;
-		bool operator!=(const DirectedGraph& source) const { return !((*this) == source); }
+		bool operator==(DirectedGraph const& source) const;
+		bool operator!=(DirectedGraph const& source) const { return !((*this) == source); }
 
 		friend std::istream& operator>>(std::istream& is, DirectedGraph& graph);
 		friend std::ifstream& operator>>(std::ifstream& ifs, DirectedGraph& graph);
 
 	private:
-		void topologicalSort(uint32_t vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const;
+		void topologicalSort(uint32_t const& vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const;
 };
 
