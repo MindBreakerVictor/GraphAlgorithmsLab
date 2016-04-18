@@ -43,6 +43,6 @@ class Graph
 	protected:
 		bool _weighted;
 		uint32_t _vertices, _edges;
-		Vector<Vector<Pair<uint32_t, uint32_t>>> _adjacencyList;
+		Vector<Vector<Pair<uint32_t, int32_t>>> _adjacencyList;
 };
 

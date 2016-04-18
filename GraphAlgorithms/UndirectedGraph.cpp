@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "UndirectedGraph.h"
+#include "DisjointSet.h"
 
 UndirectedGraph::UndirectedGraph(std::ifstream& ifs, bool const& weighted)
 {
@@ -196,6 +197,21 @@ Vector<Vector<bool>> UndirectedGraph::getRoadMatrix() const
 	return roadMatrix;
 }
 
+Vector<uint32_t> UndirectedGraph::getArticulationPoints() const
+{
+	Vector<bool> visited(_vertices, false);
+	Vector<int> parent(_vertices, -1);
+	Vector<uint32_t> discoveryTime(_vertices);
+	Vector<uint32_t> low(_vertices);
+	Vector<uint32_t> articulationPoints;
+
+	for (uint32_t i = 0; i < _vertices; i++)
+		if (!visited[i])
+			articulationPoint(i, visited, parent, discoveryTime, low, articulationPoints);
+
+	return articulationPoints;
+}
+
 Vector<Vector<uint32_t>> UndirectedGraph::getConnectedComponents() const
 {
 	Vector<Vector<uint32_t>> connectedComponents;
@@ -230,19 +246,74 @@ Vector<Vector<uint32_t>> UndirectedGraph::getBiconnectedComponents() const
 	return biconnectedComponents;
 }
 
-Vector<uint32_t> UndirectedGraph::getArticulationPoints() const
+Vector<Pair<uint32_t, uint32_t>> UndirectedGraph::getMinimumSpanningTree() const
 {
-	Vector<bool> visited(_vertices, false);
-	Vector<int> parent(_vertices, -1);
-	Vector<uint32_t> discoveryTime(_vertices);
-	Vector<uint32_t> low(_vertices);
-	Vector<uint32_t> articulationPoints;
+	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edgesCostVector = getEdgesVector();
 
-	for (uint32_t i = 0; i < _vertices; i++)
-		if (!visited[i])
-			articulationPoint(i, visited, parent, discoveryTime, low, articulationPoints);
+	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EDGES_PAIR_COMPARE);
 
-	return articulationPoints;
+	DisjointSet disjointSet(_vertices);
+	Vector<Pair<uint32_t, uint32_t>> mstEdges;	// Minimum Spanning Tree edges
+
+	for (uint32_t i = 0; i < edgesCostVector.size(); i++)
+	{
+		uint32_t x = edgesCostVector[i].first.first;
+		uint32_t y = edgesCostVector[i].first.second;
+
+		if (disjointSet.getRoot(x) != disjointSet.getRoot(y))
+		{
+			mstEdges.push_back(std::make_pair(x, y));
+			disjointSet.unionSets(x, y);
+		}
+	}
+
+	return mstEdges;
+}
+
+Vector<Pair<uint32_t, uint32_t>> UndirectedGraph::getMinimumSpanningTree(int32_t& cost) const
+{
+	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edgesCostVector = getEdgesVector();
+
+	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EDGES_PAIR_COMPARE);
+
+	DisjointSet disjointSet(_vertices);
+	Vector<Pair<uint32_t, uint32_t>> mstEdges;	// Minimum Spanning Tree edges
+
+	for (uint32_t i = 0; i < edgesCostVector.size(); i++)
+	{
+		int32_t _cost = edgesCostVector[i].second;
+		uint32_t x = edgesCostVector[i].first.first;
+		uint32_t y = edgesCostVector[i].first.second;
+
+		if (disjointSet.getRoot(x) != disjointSet.getRoot(y))
+		{
+			mstEdges.push_back(std::make_pair(x, y));
+			disjointSet.unionSets(x, y);
+			cost += _cost;
+		}
+	}
+
+	return mstEdges;
+}
+
+Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> UndirectedGraph::getEdgesVector() const
+{
+	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edges;
+
+	for (uint32_t i = 0; i < _adjacencyList.size(); i++)
+		for (Vector<Pair<uint32_t, int32_t>>::const_iterator itr = _adjacencyList[i].begin(); itr != _adjacencyList[i].end(); itr++)
+		{
+			bool found = false;
+
+			for (Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>>::const_iterator _itr = edges.begin(); _itr != edges.end() && !found; _itr++)
+				if ((_itr->first.first == i && _itr->first.second == itr->first) || (_itr->first.first == itr->first && _itr->first.second == i))
+					found = true;
+
+			if (!found)
+				edges.push_back(std::make_pair(std::make_pair(i, itr->first), itr->second));
+		}
+
+	return edges;
 }
 
 void UndirectedGraph::articulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
@@ -324,7 +395,7 @@ void UndirectedGraph::getBiconnectedComponents(uint32_t const& vertex, Vector<in
 	stack.push(vertex);
 	depth[vertex] = low[vertex] = ++currentDepth;
 
-	for (Vector<Pair<uint32_t, uint32_t>>::const_iterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
+	for (Vector<Pair<uint32_t, int32_t>>::const_iterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
 	{
 		if (!depth[neighbour->first])
 		{
