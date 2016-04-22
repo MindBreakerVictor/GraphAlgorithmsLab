@@ -95,7 +95,7 @@ Vector<int> Graph::getRoadDistance(uint32_t const& vertex) const
 			uint32_t neighbour = itr->first;
 			int32_t distance = itr->second;
 
-			if (roadDistance[neighbour] > roadDistance[element] + distance)
+			if ((roadDistance[neighbour] > roadDistance[element] + distance) || (roadDistance[neighbour] < 0))
 			{
 				roadDistance[neighbour] = roadDistance[element] + distance;
 				pQueue.push(std::make_pair(neighbour, roadDistance[neighbour]));
