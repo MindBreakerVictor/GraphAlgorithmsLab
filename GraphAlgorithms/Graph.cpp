@@ -73,25 +73,34 @@ Vector<int> Graph::getRoadDistance(uint32_t const& vertex) const
 		return Vector<int>();
 
 	Vector<bool> visited(_vertices);
-	Queue<uint32_t> queue;
 	Vector<int> roadDistance(_vertices, -1);
+	PriorityQueue<Pair<uint32_t, int32_t>, Vector<Pair<uint32_t, int32_t>>, VerticesCostComparator<false>> pQueue;
 
-	queue.push(vertex);
-	visited[vertex] = true;
 	roadDistance[vertex] = 0;
+	pQueue.push(std::make_pair(vertex, roadDistance[vertex]));
 
-	while (!queue.empty())
+	while (!pQueue.empty())
 	{
-		uint32_t element = queue.front();
+		uint32_t element = pQueue.top().first;
 
-		for (uint32_t i = 0; i < _adjacencyList[element].size(); i++)
-			if (!visited[_adjacencyList[element][i].first])
+		pQueue.pop();
+
+		if (visited[element])
+			continue;
+
+		visited[element] = true;
+
+		for (Vector<Pair<uint32_t, int32_t>>::const_iterator itr = _adjacencyList[element].begin(); itr != _adjacencyList[element].end(); itr++)
+		{
+			uint32_t neighbour = itr->first;
+			int32_t distance = itr->second;
+
+			if (roadDistance[neighbour] > roadDistance[element] + distance)
 			{
-				roadDistance[_adjacencyList[element][i].first] = roadDistance[element] + 1;
-				queue.push(_adjacencyList[element][i].first);
-				visited[_adjacencyList[element][i].first] = true;
+				roadDistance[neighbour] = roadDistance[element] + distance;
+				pQueue.push(std::make_pair(neighbour, roadDistance[neighbour]));
 			}
-		queue.pop();
+		}
 	}
 
 	return roadDistance;

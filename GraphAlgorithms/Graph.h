@@ -31,7 +31,7 @@ class Graph
 		virtual Vector<uint32_t> breadthFirstSearch(uint32_t const& vertex) const;
 		virtual Vector<uint32_t> depthFirstSearch(uint32_t const& vertex) const;
 
-		virtual Vector<Vector<bool>> getRoadMatrix() const = 0;
+		virtual Matrix<bool> getRoadMatrix() const = 0;
 		virtual Vector<int> getRoadDistance(uint32_t const& vertex) const;
 
 		friend std::ostream& operator<<(std::ostream& os, Graph const& graph);
@@ -43,6 +43,38 @@ class Graph
 	protected:
 		bool _weighted;
 		uint32_t _vertices, _edges;
-		Vector<Vector<Pair<uint32_t, int32_t>>> _adjacencyList;
+		Matrix<Pair<uint32_t, int32_t>> _adjacencyList;	// It's an adjacency list dispite the type name.
+};
+
+class EdgesCostComparator
+{
+	public:
+		EdgesCostComparator(bool ascending) : _ascending(ascending) { }
+
+		bool operator()(Pair<Pair<uint32_t, uint32_t>, int32_t> const& firstEdge,
+			Pair<Pair<uint32_t, uint32_t>, int32_t> const& secondEdge) const
+		{
+			if (_ascending)
+				return firstEdge.second < secondEdge.second ? true : false;
+			else
+				return firstEdge.second > secondEdge.second ? true : false;
+		}
+
+	private:
+		bool _ascending;
+};
+
+template <bool ascending>
+class VerticesCostComparator
+{
+	public:
+		bool operator()(Pair<uint32_t, int32_t> const& firstPair,
+			Pair<uint32_t, int32_t> const& secondPair) const
+		{
+			if (ascending)
+				return firstPair.second < secondPair.second ? true : false;
+			else
+				return firstPair.second > secondPair.second ? true : false;
+		}
 };
 

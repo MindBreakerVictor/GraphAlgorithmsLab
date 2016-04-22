@@ -24,11 +24,11 @@ class UndirectedGraph : public Graph
 		virtual bool isBipartite() const;
 		bool isBiconnected() const;
 		
-		virtual Vector<Vector<bool>> getRoadMatrix() const override;
+		virtual Matrix<bool> getRoadMatrix() const override;
 
 		Vector<uint32_t> getArticulationPoints() const;
-		Vector<Vector<uint32_t>> getConnectedComponents() const;
-		Vector<Vector<uint32_t>> getBiconnectedComponents() const;	// The way it gives the biconnectedComponents have to be reworked.
+		Matrix<uint32_t> getConnectedComponents() const;
+		Matrix<uint32_t> getBiconnectedComponents() const;	// The way it gives the biconnectedComponents have to be reworked.
 		Vector<Pair<uint32_t, uint32_t>> getMinimumSpanningTree() const;
 		Vector<Pair<uint32_t, uint32_t>> getMinimumSpanningTree(int32_t& cost) const;
 		Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> getEdgesVector() const;

@@ -196,9 +196,9 @@ Stack<uint32_t> DirectedGraph::getTopologicalSort() const
 	return topSort;
 }
 
-Vector<Vector<bool>> DirectedGraph::getRoadMatrix() const
+Matrix<bool> DirectedGraph::getRoadMatrix() const
 {
-	Vector<Vector<bool>> roadMatrix(_vertices);
+	Matrix<bool> roadMatrix(_vertices);
 
 	for (uint32_t i = 0; i < _vertices; i++)
 	{

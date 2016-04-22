@@ -178,10 +178,10 @@ bool UndirectedGraph::isBiconnected() const
 	return true;
 }
 
-Vector<Vector<bool>> UndirectedGraph::getRoadMatrix() const
+Matrix<bool> UndirectedGraph::getRoadMatrix() const
 {
-	Vector<Vector<bool>> roadMatrix(_vertices);
-	Vector<Vector<uint32_t>> connectedComponents = getConnectedComponents();
+	Matrix<bool> roadMatrix(_vertices);
+	Matrix<uint32_t> connectedComponents = getConnectedComponents();
 
 	for (uint32_t i = 0; i < roadMatrix.size(); i++)
 		roadMatrix[i].resize(_vertices, false);
@@ -212,9 +212,9 @@ Vector<uint32_t> UndirectedGraph::getArticulationPoints() const
 	return articulationPoints;
 }
 
-Vector<Vector<uint32_t>> UndirectedGraph::getConnectedComponents() const
+Matrix<uint32_t> UndirectedGraph::getConnectedComponents() const
 {
-	Vector<Vector<uint32_t>> connectedComponents;
+	Matrix<uint32_t> connectedComponents;
 	Vector<bool> visited(_vertices, false);
 
 	for (uint32_t i = 0; i < _vertices; i++)
@@ -231,13 +231,13 @@ Vector<Vector<uint32_t>> UndirectedGraph::getConnectedComponents() const
 	return connectedComponents;
 }
 
-Vector<Vector<uint32_t>> UndirectedGraph::getBiconnectedComponents() const
+Matrix<uint32_t> UndirectedGraph::getBiconnectedComponents() const
 {
 	Stack<uint32_t> stack;
 	Vector<int> parent(_vertices, -1);						// Represents the parent of the vertex in DFS-tree.
 	Vector<uint32_t> low(_vertices, 0);						// Represents the lowest depth of a vertex connected to the index vertex through a back-edge in DFS-tree.
 	Vector<uint32_t> depth(_vertices, 0);					// Represents the depth of the vertex in DFS-tree.
-	Vector<Vector<uint32_t>> biconnectedComponents;
+	Matrix<uint32_t> biconnectedComponents;
 
 	for (uint32_t vertex = 0; vertex < _vertices; vertex++)
 		if (!depth[vertex])
@@ -250,7 +250,7 @@ Vector<Pair<uint32_t, uint32_t>> UndirectedGraph::getMinimumSpanningTree() const
 {
 	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edgesCostVector = getEdgesVector();
 
-	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EDGES_PAIR_COMPARE);
+	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EdgesCostComparator(true));
 
 	DisjointSet disjointSet(_vertices);
 	Vector<Pair<uint32_t, uint32_t>> mstEdges;	// Minimum Spanning Tree edges
@@ -274,7 +274,7 @@ Vector<Pair<uint32_t, uint32_t>> UndirectedGraph::getMinimumSpanningTree(int32_t
 {
 	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edgesCostVector = getEdgesVector();
 
-	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EDGES_PAIR_COMPARE);
+	std::sort(edgesCostVector.begin(), edgesCostVector.end(), EdgesCostComparator(true));
 
 	DisjointSet disjointSet(_vertices);
 	Vector<Pair<uint32_t, uint32_t>> mstEdges;	// Minimum Spanning Tree edges
