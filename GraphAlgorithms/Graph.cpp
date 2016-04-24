@@ -90,7 +90,7 @@ Vector<int> Graph::getRoadDistance(uint32_t const& vertex) const
 
 		visited[element] = true;
 
-		for (Vector<Pair<uint32_t, int32_t>>::const_iterator itr = _adjacencyList[element].begin(); itr != _adjacencyList[element].end(); itr++)
+		for (AdjacencyListConstantIterator itr = _adjacencyList[element].begin(); itr != _adjacencyList[element].end(); itr++)
 		{
 			uint32_t neighbour = itr->first;
 			int32_t distance = itr->second;

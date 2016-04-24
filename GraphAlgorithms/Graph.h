@@ -2,6 +2,11 @@
 
 #include "PCH.h"
 
+typedef Vector<Pair<uint32_t, int32_t>>::iterator AdjacencyListIterator;
+typedef Vector<Pair<uint32_t, int32_t>>::const_iterator AdjacencyListConstantIterator;
+typedef Vector<Pair<uint32_t, int32_t>>::reverse_iterator AdjacencyListReverseIterator;
+typedef Vector<Pair<uint32_t, int32_t>>::const_reverse_iterator AdjacencyListConstantReverseIterator;
+
 class Graph
 {
 	protected:

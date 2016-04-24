@@ -196,6 +196,21 @@ Stack<uint32_t> DirectedGraph::getTopologicalSort() const
 	return topSort;
 }
 
+Matrix<uint32_t> DirectedGraph::getStronglyConnectedComponents() const
+{
+	Stack<uint32_t> stack;
+	Vector<uint32_t> low(_vertices, 0);						// Represents the lowest depth of a vertex connected to the index vertex through a back-edge in DFS-tree.
+	Vector<uint32_t> depth(_vertices, 0);					// Represents the depth of the vertex in DFS-tree.
+	Vector<bool> isInStack(_vertices, false);
+	Matrix<uint32_t> stronglyConnectedComponents;
+
+	for (uint32_t vertex = 0; vertex < _vertices; vertex++)
+		if (!depth[vertex])
+			getStronglyConnectedComponents(vertex, depth, low, isInStack, stack, stronglyConnectedComponents);
+
+	return stronglyConnectedComponents;
+}
+
 Matrix<bool> DirectedGraph::getRoadMatrix() const
 {
 	Matrix<bool> roadMatrix(_vertices);
@@ -302,6 +317,47 @@ void DirectedGraph::topologicalSort(uint32_t const& vertex, Vector<bool>& visite
 			topologicalSort(_adjacencyList[vertex][i].first, visited, topSort);
 
 	topSort.push(vertex);
+}
+
+void DirectedGraph::getStronglyConnectedComponents(uint32_t const& vertex, Vector<uint32_t>& depth, Vector<uint32_t>& low,
+	Vector<bool>& isInStack, Stack<uint32_t>& stack, Matrix<uint32_t>& stronglyConnectedComponents) const
+{
+	if (!isValidVertex(vertex))
+		return;
+
+	static uint32_t currentDepth = 0;
+	stack.push(vertex);
+	isInStack[vertex] = true;
+	depth[vertex] = low[vertex] = ++currentDepth;
+
+	for (AdjacencyListConstantIterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
+	{
+		if (!depth[neighbour->first])
+		{
+			getStronglyConnectedComponents(neighbour->first, depth, low, isInStack, stack, stronglyConnectedComponents);
+			low[vertex] = std::min(low[vertex], low[neighbour->first]);
+		}
+		else if (isInStack[neighbour->first])
+			low[vertex] = std::min(low[vertex], depth[neighbour->first]);
+	}
+
+	if (low[vertex] == depth[vertex])
+	{
+		Matrix<uint32_t>::reverse_iterator itr;
+		stronglyConnectedComponents.push_back(Vector<uint32_t>());
+		itr = stronglyConnectedComponents.rbegin();
+
+		while (stack.top() != vertex)
+		{
+			itr->push_back(stack.top());
+			isInStack[stack.top()] = false;
+			stack.pop();
+		}
+
+		itr->push_back(stack.top());
+		isInStack[stack.top()] = false;
+		stack.pop();
+	}
 }
 
 std::istream& operator>>(std::istream& is, DirectedGraph& graph)

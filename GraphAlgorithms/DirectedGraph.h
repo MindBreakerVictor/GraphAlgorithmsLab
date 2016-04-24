@@ -28,7 +28,7 @@ class DirectedGraph : public Graph
 		Vector<Vector<bool>> getRoadMatrix() const override;
 
 		std::stack<uint32_t> getTopologicalSort() const;
-		//Vector<Vector<uint32_t>> getStronglyConnectedComponents() const;
+		Matrix<uint32_t> getStronglyConnectedComponents() const;
 
 		DirectedGraph& operator=(DirectedGraph const& source);
 
@@ -43,5 +43,8 @@ class DirectedGraph : public Graph
 
 	private:
 		void topologicalSort(uint32_t const& vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const;
+
+		void getStronglyConnectedComponents(uint32_t const& vertex, Vector<uint32_t>& depth, Vector<uint32_t>& low,
+			Vector<bool>& isInStack, Stack<uint32_t>& stack, Matrix<uint32_t>& stronglyConnectedComponents) const;
 };
 

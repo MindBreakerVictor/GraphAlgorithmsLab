@@ -298,14 +298,15 @@ Vector<Pair<uint32_t, uint32_t>> UndirectedGraph::getMinimumSpanningTree(int32_t
 
 Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> UndirectedGraph::getEdgesVector() const
 {
+	typedef Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>>::const_iterator EdgesIterator;
 	Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> edges;
 
 	for (uint32_t i = 0; i < _adjacencyList.size(); i++)
-		for (Vector<Pair<uint32_t, int32_t>>::const_iterator itr = _adjacencyList[i].begin(); itr != _adjacencyList[i].end(); itr++)
+		for (AdjacencyListConstantIterator itr = _adjacencyList[i].begin(); itr != _adjacencyList[i].end(); itr++)
 		{
 			bool found = false;
 
-			for (Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>>::const_iterator _itr = edges.begin(); _itr != edges.end() && !found; _itr++)
+			for (EdgesIterator _itr = edges.begin(); _itr != edges.end() && !found; _itr++)
 				if ((_itr->first.first == i && _itr->first.second == itr->first) || (_itr->first.first == itr->first && _itr->first.second == i))
 					found = true;
 
@@ -395,7 +396,7 @@ void UndirectedGraph::getBiconnectedComponents(uint32_t const& vertex, Vector<in
 	stack.push(vertex);
 	depth[vertex] = low[vertex] = ++currentDepth;
 
-	for (Vector<Pair<uint32_t, int32_t>>::const_iterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
+	for (AdjacencyListConstantIterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
 	{
 		if (!depth[neighbour->first])
 		{
