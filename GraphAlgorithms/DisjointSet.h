@@ -1,12 +1,13 @@
-#pragma once
+#ifndef _DISJOINT_SET_H
+#define _DISJOINT_SET_H
 
 #include "PCH.h"
 
 class DisjointSet
 {
 	public:
-		DisjointSet(uint32_t size);
-		DisjointSet(const DisjointSet& source) : _rank(source._rank), _parent(source._parent) { }
+		explicit DisjointSet(uint32_t size);
+		DisjointSet(DisjointSet const& source) : _rank(source._rank), _parent(source._parent) { }
 
 		void link(uint32_t firstVertex, uint32_t secondVertex);
 		void unionSets(uint32_t firstVertex, uint32_t secondVertex) { link(getRoot(firstVertex), getRoot(secondVertex)); }
@@ -17,3 +18,4 @@ class DisjointSet
 		Vector<uint32_t> _rank, _parent;
 };
 
+#endif

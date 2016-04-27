@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _TREE_H
+#define _TREE_H
 
 #include "PCH.h"
 #include "UndirectedGraph.h"
@@ -7,8 +8,8 @@ class Tree : public UndirectedGraph
 {
 	public:
 		Tree() : UndirectedGraph() { }
-		Tree(uint32_t const& vertices);
-		Tree(std::ifstream& ifs);
+		explicit Tree(uint32_t const& vertices);
+		explicit Tree(std::ifstream& ifs);
 		Tree(Tree const& source) : UndirectedGraph(source) { }
 
 		uint32_t getDiameter() const;
@@ -25,4 +26,6 @@ class Tree : public UndirectedGraph
 
 		Vector<Vector<bool>> getRoadMatrix() const override { return Vector<Vector<bool>>(_vertices, Vector<bool>(_vertices, true)); }
 };
+
+#endif
 

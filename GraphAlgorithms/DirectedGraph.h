@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _DIRECTED_GRAPH_H
+#define _DIRECTED_GRAPH_H
 
 #include "PCH.h"
 #include "Graph.h"
@@ -7,7 +8,7 @@ class DirectedGraph : public Graph
 {
 	public:
 		DirectedGraph() : Graph() { }
-		DirectedGraph(std::ifstream& ifs, bool const& weighted = false);
+		explicit DirectedGraph(std::ifstream& ifs, bool const& weighted = false);
 		DirectedGraph(DirectedGraph const& source) : Graph(source) { }
 
 		uint32_t getDegree(uint32_t const& vertex) const override;
@@ -47,4 +48,6 @@ class DirectedGraph : public Graph
 		void getStronglyConnectedComponents(uint32_t const& vertex, Vector<uint32_t>& depth, Vector<uint32_t>& low,
 			Vector<bool>& isInStack, Stack<uint32_t>& stack, Matrix<uint32_t>& stronglyConnectedComponents) const;
 };
+
+#endif
 

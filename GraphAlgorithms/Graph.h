@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _GRAPH_H
+#define _GRAPH_H
 
 #include "PCH.h"
 
@@ -9,13 +10,6 @@ typedef Vector<Pair<uint32_t, int32_t>>::const_reverse_iterator AdjacencyListCon
 
 class Graph
 {
-	protected:
-		Graph() : _weighted(false), _vertices(0), _edges(0), _adjacencyList(0) { }
-		explicit Graph(uint32_t const& vertices) : _weighted(false), _vertices(vertices), 
-			_edges(vertices - 1), _adjacencyList(vertices) { }
-		Graph(Graph const& source) : _weighted(source._weighted), _vertices(source._vertices), 
-			_edges(source._edges), _adjacencyList(source._adjacencyList) { }
-
 	public:
 		virtual ~Graph() { }
 
@@ -43,9 +37,16 @@ class Graph
 		friend std::ofstream& operator<<(std::ofstream& ofs, Graph const& graph);
 
 	protected:
+		Graph() : _weighted(false), _vertices(0), _edges(0), _adjacencyList(0) { }
+
+		explicit Graph(uint32_t const& vertices) : _weighted(false), _vertices(vertices),
+			_edges(vertices - 1), _adjacencyList(vertices) { }
+
+		Graph(Graph const& source) : _weighted(source._weighted), _vertices(source._vertices),
+			_edges(source._edges), _adjacencyList(source._adjacencyList) { }
+
 		bool isValidVertex(uint32_t const& vertex) const;
 
-	protected:
 		bool _weighted;
 		uint32_t _vertices, _edges;
 		Matrix<Pair<uint32_t, int32_t>> _adjacencyList;	// It's an adjacency list dispite the type name.
@@ -82,4 +83,6 @@ class VerticesCostComparator
 				return firstPair.second > secondPair.second ? true : false;
 		}
 };
+
+#endif
 

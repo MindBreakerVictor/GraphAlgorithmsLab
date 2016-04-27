@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _PCH_H
+#define _PCH_H
 
 #include <fstream>
 #include <iostream>
@@ -27,4 +28,6 @@ using Pair = std::pair<_Type1, _Type2>;
 
 template <class _Type, class _Container = Vector<_Type>, class _Predicate = std::less<_Container::value_type>>
 using PriorityQueue = std::priority_queue<_Type, _Container, _Predicate>;
+
+#endif
 

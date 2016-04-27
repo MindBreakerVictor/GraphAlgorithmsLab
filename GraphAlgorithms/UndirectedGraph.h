@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _UNDIRECTED_GRAPH_H
+#define _UNDIRECTED_GRAPH_H
 
 #include "PCH.h"
 #include "Graph.h"
@@ -7,7 +8,7 @@ class UndirectedGraph : public Graph
 {
 	public:
 		UndirectedGraph() : Graph() { }
-		UndirectedGraph(std::ifstream& ifs, bool const& weighted = false);
+		explicit UndirectedGraph(std::ifstream& ifs, bool const& weighted = false);
 		UndirectedGraph(UndirectedGraph const& source) : Graph(source) { }
 
 		uint32_t getDegree(uint32_t const& vertex) const override;
@@ -45,7 +46,7 @@ class UndirectedGraph : public Graph
 		friend std::ifstream& operator>>(std::ifstream& ifs, UndirectedGraph& graph);
 
 	protected:
-		UndirectedGraph(uint32_t const& vertices) : Graph(vertices) { }
+		explicit UndirectedGraph(uint32_t const& vertices) : Graph(vertices) { }
 
 	private:
 		bool hasArticulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
@@ -57,4 +58,6 @@ class UndirectedGraph : public Graph
 		void getBiconnectedComponents(uint32_t const& vertex, Vector<int>& parent, Vector<uint32_t>& depth,
 			Vector<uint32_t>& low, Stack<uint32_t>& stack, Vector<Vector<uint32_t>>& biconnectedComponents) const;
 };
+
+#endif
 
