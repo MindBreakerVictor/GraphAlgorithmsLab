@@ -6,13 +6,13 @@
 class DisjointSet
 {
 	public:
-		explicit DisjointSet(uint32_t size);
+		explicit DisjointSet(uint32_t const& size);
 		DisjointSet(DisjointSet const& source) : _rank(source._rank), _parent(source._parent) { }
 
-		void link(uint32_t firstVertex, uint32_t secondVertex);
-		void unionSets(uint32_t firstVertex, uint32_t secondVertex) { link(getRoot(firstVertex), getRoot(secondVertex)); }
+		void Link(uint32_t const& firstVertex, uint32_t const& secondVertex);
+		void UnionSets(uint32_t const& firstVertex, uint32_t const& secondVertex) { Link(GetRoot(firstVertex), GetRoot(secondVertex)); }
 
-		uint32_t getRoot(uint32_t vertex);
+		uint32_t GetRoot(uint32_t vertex);
 
 	private:
 		Vector<uint32_t> _rank, _parent;

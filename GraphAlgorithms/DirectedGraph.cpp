@@ -1,159 +1,45 @@
 #include "PCH.h"
 #include "DirectedGraph.h"
 
-DirectedGraph::DirectedGraph(std::ifstream& ifs, bool const& weighted)
+DirectedGraph::DirectedGraph(std::ifstream& ifs, bool weighted)
 {
+	uint32_t vertices;
 	_weighted = weighted;
-	ifs >> _vertices >> _edges;
-	_adjacencyList.resize(_vertices);
+	ifs >> vertices >> _edges;
+	_adjacencyList.resize(vertices);
 
-	if (!isWeighted())
-		for (uint32_t i = 0; i < _edges; i++)
+	if (!IsWeighted())
+		for (uint32_t i = 0; i < GetEdges(); ++i)
 		{
 			uint32_t x, y;
+
 			ifs >> x >> y;
 			_adjacencyList[x].push_back(std::make_pair(y, 0));
 		}
 	else
-		for (uint32_t i = 0; i < _edges; i++)
+		for (uint32_t i = 0; i < GetEdges(); ++i)
 		{
 			uint32_t x, y, w;
+
 			ifs >> x >> y >> w;
 			_adjacencyList[x].push_back(std::make_pair(y, w));
 		}
 }
 
-uint32_t DirectedGraph::getDegree(uint32_t const& vertex) const
+bool DirectedGraph::IsComplete() const
 {
-	if (!isValidVertex(vertex))
-		return 0;
-
-	return getInDegree(vertex) + getOutDegree(vertex);
-}
-
-uint32_t DirectedGraph::getInDegree(uint32_t const& vertex) const
-{
-	if (!isValidVertex(vertex))
-		return 0;
-
-	uint32_t count = 0;
-
-	for (uint32_t i = 0; i < _adjacencyList.size(); i++)
+	for (uint32_t i = 0; i < GetVertices(); ++i)
 	{
-		for (uint32_t j = 0; j < _adjacencyList[i].size(); j++)
-			if (_adjacencyList[i][j].first == vertex)
-				count++;
-	}
-
-	return count;
-}
-
-uint32_t DirectedGraph::getOutDegree(uint32_t const& vertex) const
-{
-	if (!isValidVertex(vertex))
-		return 0;
-
-	return static_cast<uint32_t>(_adjacencyList[vertex].size());
-}
-
-uint32_t DirectedGraph::getMinDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t minDegree = getDegree(0);
-
-	for (unsigned int i = 1; i < _vertices; i++)
-		if (getDegree(i) < minDegree)
-			minDegree = getDegree(i);
-
-	return minDegree;
-}
-
-uint32_t DirectedGraph::getMinInDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t minInDegree = getInDegree(0);
-
-	for (unsigned int i = 1; i < _vertices; i++)
-		if (getInDegree(i) < minInDegree)
-			minInDegree = getInDegree(i);
-
-	return minInDegree;
-}
-
-uint32_t DirectedGraph::getMinOutDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t minOutDegree = getOutDegree(0);
-
-	for (unsigned int i = 1; i < _vertices; i++)
-		if (getOutDegree(i) < minOutDegree)
-			minOutDegree = getOutDegree(i);
-
-	return minOutDegree;
-}
-
-uint32_t DirectedGraph::getMaxDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t maxDegree = getDegree(0);
-
-	for (uint32_t i = 1; i < _vertices; i++)
-		if (getDegree(i) > maxDegree)
-			maxDegree = getDegree(i);
-
-	return maxDegree;
-}
-
-uint32_t DirectedGraph::getMaxInDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t maxInDegree = getInDegree(0);
-
-	for (uint32_t i = 1; i < _vertices; i++)
-		if (getInDegree(i) > maxInDegree)
-			maxInDegree = getInDegree(i);
-
-	return maxInDegree;
-}
-
-uint32_t DirectedGraph::getMaxOutDegree() const
-{
-	if (!_vertices || _vertices == 1 || !_edges)
-		return 0;
-
-	uint32_t maxOutDegree = getOutDegree(0);
-
-	for (uint32_t i = 1; i < _vertices; i++)
-		if (getOutDegree(i) > maxOutDegree)
-			maxOutDegree = getOutDegree(i);
-
-	return maxOutDegree;
-}
-
-bool DirectedGraph::isComplete() const
-{
-	for (uint32_t i = 0; i < _vertices; i++)
-	{
-		if (_adjacencyList[i].size() < _vertices - 1)
+		if (GetOutDegree(i) < (GetVertices() - 1))
 			return false;
 
-		Vector<bool> visited(_vertices, false);
+		Vector<bool> visited(GetVertices(), false);
 		visited[i] = true;
 
-		for (uint32_t j = 0; j < _adjacencyList[i].size(); j++)
+		for (uint32_t j = 0; j < GetOutDegree(i); ++j)
 			visited[_adjacencyList[i][j].first] = true;
 
-		for (uint32_t j = 0; j < visited.size(); j++)
+		for (uint32_t j = 0; j < visited.size(); ++j)
 			if (!visited[j])
 				return false;
 	}
@@ -161,22 +47,22 @@ bool DirectedGraph::isComplete() const
 	return true;
 }
 
-bool DirectedGraph::isRegular() const
+bool DirectedGraph::IsRegular() const
 {
-	for (uint32_t i = 1; i < _vertices; i++)
-		if (getInDegree(i) != getInDegree(i - 1) || getOutDegree(i) != getOutDegree(i - 1))
+	for (uint32_t i = 1; i < GetVertices(); ++i)
+		if ((GetInDegree(i) != GetInDegree(i - 1)) || (GetOutDegree(i) != GetOutDegree(i - 1)))
 			return false;
 
 	return true;
 }
 
-bool DirectedGraph::isStronglyConnected() const
+bool DirectedGraph::IsStronglyConnected() const
 {
-	for (uint32_t i = 0; i < _vertices; i++)
+	for (uint32_t i = 0; i < GetVertices(); ++i)
 	{
-		Vector<int> roadDistance = getRoadDistance(i);
+		Vector<int> roadDistance = GetRoadDistance(i);
 
-		for (uint32_t j = 0; j < roadDistance.size(); j++)
+		for (uint32_t j = 0; j < roadDistance.size(); ++j)
 			if (roadDistance[j] == -1)
 				return false;
 	}
@@ -184,42 +70,42 @@ bool DirectedGraph::isStronglyConnected() const
 	return true;
 }
 
-Stack<uint32_t> DirectedGraph::getTopologicalSort() const
+Stack<uint32_t> DirectedGraph::GetTopologicalSort() const
 {
 	Stack<uint32_t> topSort;
-	Vector<bool> visited(_vertices, false);
+	Vector<bool> visited(GetVertices(), false);
 
-	for (uint32_t vertex = 0; vertex < _vertices; vertex++)
-		if (!visited[vertex])
-			topologicalSort(vertex, visited, topSort);
+	for (uint32_t i = 0; i < GetVertices(); ++i)
+		if (!visited[i])
+			TopologicalSort(i, &visited, &topSort);
 
 	return topSort;
 }
 
-Matrix<uint32_t> DirectedGraph::getStronglyConnectedComponents() const
+Matrix<uint32_t> DirectedGraph::GetStronglyConnectedComponents() const
 {
 	Stack<uint32_t> stack;
-	Vector<uint32_t> low(_vertices, 0);						// Represents the lowest depth of a vertex connected to the index vertex through a back-edge in DFS-tree.
-	Vector<uint32_t> depth(_vertices, 0);					// Represents the depth of the vertex in DFS-tree.
-	Vector<bool> isInStack(_vertices, false);
+	Vector<uint32_t> low(GetVertices(), 0);						// Represents the lowest depth of a vertex connected to the index vertex through a back-edge in DFS-tree.
+	Vector<uint32_t> depth(GetVertices(), 0);					// Represents the depth of the vertex in DFS-tree.
+	Vector<bool> isInStack(GetVertices(), false);
 	Matrix<uint32_t> stronglyConnectedComponents;
 
-	for (uint32_t vertex = 0; vertex < _vertices; vertex++)
-		if (!depth[vertex])
-			getStronglyConnectedComponents(vertex, depth, low, isInStack, stack, stronglyConnectedComponents);
+	for (uint32_t i = 0; i < GetVertices(); ++i)
+		if (!depth[i])
+			GetStronglyConnectedComponents(i, &depth, &low, &isInStack, &stack, &stronglyConnectedComponents);
 
 	return stronglyConnectedComponents;
 }
 
-Matrix<bool> DirectedGraph::getRoadMatrix() const
+Matrix<bool> DirectedGraph::GetRoadMatrix() const
 {
-	Matrix<bool> roadMatrix(_vertices);
+	Matrix<bool> roadMatrix(GetVertices());
 
-	for (uint32_t i = 0; i < _vertices; i++)
+	for (uint32_t i = 0; i < GetVertices(); ++i)
 	{
-		Vector<int> roadDistance = getRoadDistance(i);
+		Vector<int> roadDistance = GetRoadDistance(i);
 
-		for (uint32_t j = 0; j < roadDistance.size(); j++)
+		for (uint32_t j = 0; j < roadDistance.size(); ++j)
 			if (roadDistance[j] != -1)
 				roadMatrix[i][j] = true;
 	}
@@ -233,7 +119,6 @@ DirectedGraph& DirectedGraph::operator=(DirectedGraph const& source)
 		return *this;
 
 	_weighted = source._weighted;
-	_vertices = source._vertices;
 	_edges = source._edges;
 	_adjacencyList = source._adjacencyList;
 
@@ -242,23 +127,22 @@ DirectedGraph& DirectedGraph::operator=(DirectedGraph const& source)
 
 DirectedGraph DirectedGraph::operator+(DirectedGraph const& source) const
 {
-	if (this->_vertices != source._vertices || this->_vertices == 0)
+	if (this->GetVertices() != source.GetVertices() || this->GetVertices() == 0)
 		return DirectedGraph();
 
 	DirectedGraph sumGraph;
-	sumGraph._vertices = this->_vertices;
-	sumGraph._adjacencyList.resize(sumGraph._vertices);
+	sumGraph._adjacencyList.resize(this->GetVertices());
 
-	for (uint32_t i = 0; i < sumGraph._vertices; i++)
+	for (uint32_t i = 0; i < sumGraph.GetVertices(); ++i)
 	{
-		for (uint32_t j = 0; j < this->_adjacencyList[i].size(); j++)
+		for (uint32_t j = 0; j < this->GetOutDegree(i); ++j)
 			sumGraph._adjacencyList[i].push_back(this->_adjacencyList[i][j]);
 
-		for (uint32_t j = 0; j < source._adjacencyList[i].size(); j++)
+		for (uint32_t j = 0; j < source.GetOutDegree(i); ++j)
 		{
 			bool found = false;
 
-			for (uint32_t k = 0; k < sumGraph._adjacencyList[i].size(); k++)
+			for (uint32_t k = 0; k < sumGraph.GetOutDegree(i); ++k)
 				if (sumGraph._adjacencyList[i][k] == source._adjacencyList[i][j])
 					found = true;
 
@@ -273,19 +157,18 @@ DirectedGraph DirectedGraph::operator+(DirectedGraph const& source) const
 DirectedGraph DirectedGraph::operator-(DirectedGraph const& source) const
 {
 	// TODO: better way to handle this
-	if (this->_vertices != this->_vertices || source._vertices == 0)
+	if (this->GetVertices() != this->GetVertices() || source.GetVertices() == 0)
 		return DirectedGraph();
 
 	DirectedGraph difGraph;
-	difGraph._vertices = this->_vertices;
-	difGraph._adjacencyList.resize(difGraph._vertices);
+	difGraph._adjacencyList.resize(this->GetVertices());
 
-	for (uint32_t i = 0; i < this->_adjacencyList.size(); i++)
+	for (uint32_t i = 0; i < this->GetVertices(); ++i)
 	{
-		for (uint32_t j = 0; j < this->_adjacencyList[i].size(); j++)
+		for (uint32_t j = 0; j < this->GetOutDegree(i); ++j)
 		{
 			bool found = false;
-			for (uint32_t k = 0; k < this->_adjacencyList[i].size(); k++)
+			for (uint32_t k = 0; k < this->GetOutDegree(i); ++k)
 				if (this->_adjacencyList[i][j] == source._adjacencyList[i][k])
 					found = true;
 
@@ -299,88 +182,91 @@ DirectedGraph DirectedGraph::operator-(DirectedGraph const& source) const
 
 bool DirectedGraph::operator==(DirectedGraph const& source) const
 {
-	if (this->_vertices != source._vertices || this->_edges != source._edges)
+	if (this->GetVertices() != source.GetVertices() || this->GetEdges() != source.GetEdges())
 		return false;
 
-	if (((*this) + source)._edges != this->_edges)
+	if (((*this) + source).GetEdges() != this->GetEdges())
 		return false;
 
 	return true;
 }
 
-void DirectedGraph::topologicalSort(uint32_t const& vertex, Vector<bool>& visited, Stack<uint32_t>& topSort) const
+void DirectedGraph::TopologicalSort(uint32_t const& vertex, Vector<bool>* visited, Stack<uint32_t>* topSort) const
 {
-	visited[vertex] = true;
+	(*visited)[vertex] = true;
 
-	for (uint32_t i = 0; i < _adjacencyList[vertex].size(); i++)
-		if (!visited[_adjacencyList[vertex][i].first])
-			topologicalSort(_adjacencyList[vertex][i].first, visited, topSort);
+	for (uint32_t i = 0; i < GetOutDegree(vertex); ++i)
+		if (!(*visited)[_adjacencyList[vertex][i].first])
+			TopologicalSort(_adjacencyList[vertex][i].first, visited, topSort);
 
-	topSort.push(vertex);
+	topSort->push(vertex);
 }
 
-void DirectedGraph::getStronglyConnectedComponents(uint32_t const& vertex, Vector<uint32_t>& depth, Vector<uint32_t>& low,
-	Vector<bool>& isInStack, Stack<uint32_t>& stack, Matrix<uint32_t>& stronglyConnectedComponents) const
+void DirectedGraph::GetStronglyConnectedComponents(uint32_t const& vertex, Vector<uint32_t>* depth, Vector<uint32_t>* low,
+	Vector<bool>* isInStack, Stack<uint32_t>* stack, Matrix<uint32_t>* stronglyConnectedComponents) const
 {
-	if (!isValidVertex(vertex))
+	if (!IsValidVertex(vertex))
 		return;
 
 	static uint32_t currentDepth = 0;
-	stack.push(vertex);
-	isInStack[vertex] = true;
-	depth[vertex] = low[vertex] = ++currentDepth;
+	stack->push(vertex);
+	(*isInStack)[vertex] = true;
+	(*depth)[vertex] = (*low)[vertex] = ++currentDepth;
 
-	for (AdjacencyListConstantIterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); neighbour++)
+	for (AdjacencyListConstIterator neighbour = _adjacencyList[vertex].begin(); neighbour != _adjacencyList[vertex].end(); ++neighbour)
 	{
-		if (!depth[neighbour->first])
+		if (!(*depth)[neighbour->first])
 		{
-			getStronglyConnectedComponents(neighbour->first, depth, low, isInStack, stack, stronglyConnectedComponents);
-			low[vertex] = std::min(low[vertex], low[neighbour->first]);
+			GetStronglyConnectedComponents(neighbour->first, depth, low, isInStack, stack, stronglyConnectedComponents);
+			(*low)[vertex] = std::min((*low)[vertex], (*low)[neighbour->first]);
 		}
-		else if (isInStack[neighbour->first])
-			low[vertex] = std::min(low[vertex], depth[neighbour->first]);
+		else if ((*isInStack)[neighbour->first])
+			(*low)[vertex] = std::min((*low)[vertex], (*depth)[neighbour->first]);
 	}
 
-	if (low[vertex] == depth[vertex])
+	if ((*low)[vertex] == (*depth)[vertex])
 	{
 		Matrix<uint32_t>::reverse_iterator itr;
-		stronglyConnectedComponents.push_back(Vector<uint32_t>());
-		itr = stronglyConnectedComponents.rbegin();
+		stronglyConnectedComponents->push_back(Vector<uint32_t>());
+		itr = stronglyConnectedComponents->rbegin();
 
-		while (stack.top() != vertex)
+		while (stack->top() != vertex)
 		{
-			itr->push_back(stack.top());
-			isInStack[stack.top()] = false;
-			stack.pop();
+			itr->push_back(stack->top());
+			(*isInStack)[stack->top()] = false;
+			stack->pop();
 		}
 
-		itr->push_back(stack.top());
-		isInStack[stack.top()] = false;
-		stack.pop();
+		itr->push_back(stack->top());
+		(*isInStack)[stack->top()] = false;
+		stack->pop();
 	}
 }
 
 std::istream& operator>>(std::istream& is, DirectedGraph& graph)
 {
 	uint16_t weighted;
-	is >> graph._vertices >> graph._edges >> weighted;
+	uint32_t vertices;
+	is >> vertices >> graph._edges >> weighted;
 
 	graph._adjacencyList.~vector();
-	graph._adjacencyList.resize(graph._vertices);
+	graph._adjacencyList.resize(vertices);
 
 	graph._weighted = weighted ? true : false;
 
-	if (!graph.isWeighted())
-		for (uint32_t i = 0; i < graph._edges; i++)
+	if (!graph.IsWeighted())
+		for (uint32_t i = 0; i < graph.GetEdges(); ++i)
 		{
 			uint32_t x, y;
+
 			is >> x >> y;
 			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
 		}
 	else
-		for (uint32_t i = 0; i < graph._edges; i++)
+		for (uint32_t i = 0; i < graph.GetEdges(); ++i)
 		{
 			uint32_t x, y, w;
+
 			is >> x >> y >> w;
 			graph._adjacencyList[x].push_back(std::make_pair(y, w));
 		}
@@ -391,24 +277,27 @@ std::istream& operator>>(std::istream& is, DirectedGraph& graph)
 std::ifstream& operator>>(std::ifstream& ifs, DirectedGraph& graph)
 {
 	uint16_t weighted;
-	ifs >> graph._vertices >> graph._edges >> weighted;
+	uint32_t vertices;
+	ifs >> vertices >> graph._edges >> weighted;
 
 	graph._adjacencyList.~vector();
-	graph._adjacencyList.resize(graph._vertices);
+	graph._adjacencyList.resize(vertices);
 
 	graph._weighted = weighted ? true : false;
 
-	if (!graph.isWeighted())
-		for (uint32_t i = 0; i < graph._edges; i++)
+	if (!graph.IsWeighted())
+		for (uint32_t i = 0; i < graph.GetEdges(); ++i)
 		{
 			uint32_t x, y;
+
 			ifs >> x >> y;
 			graph._adjacencyList[x].push_back(std::make_pair(y, 0));
 		}
 	else
-		for (uint32_t i = 0; i < graph._edges; i++)
+		for (uint32_t i = 0; i < graph.GetEdges(); ++i)
 		{
 			uint32_t x, y, w;
+
 			ifs >> x >> y >> w;
 			graph._adjacencyList[x].push_back(std::make_pair(y, w));
 		}

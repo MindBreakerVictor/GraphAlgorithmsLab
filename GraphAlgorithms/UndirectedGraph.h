@@ -8,31 +8,29 @@ class UndirectedGraph : public Graph
 {
 	public:
 		UndirectedGraph() : Graph() { }
-		explicit UndirectedGraph(std::ifstream& ifs, bool const& weighted = false);
+		explicit UndirectedGraph(std::ifstream& ifs, bool weighted = false);
 		UndirectedGraph(UndirectedGraph const& source) : Graph(source) { }
 
-		uint32_t getDegree(uint32_t const& vertex) const override;
-		uint32_t getMinDegree() const override;
-		uint32_t getMaxDegree() const override;
+		uint32_t GetDegree(uint32_t const& vertex) const override;
 
-		double getDensity() const override { return  2 * Graph::getDensity(); }
+		double GetDensity() const override;
 
-		virtual bool isComplete() const override;
-		virtual bool isRegular() const override;
-		virtual bool isConnected() const;
-		virtual bool isHamiltonian() const;
-		virtual bool isEulerian() const;
-		virtual bool isBipartite() const;
-		bool isBiconnected() const;
+		virtual bool IsComplete() const override;
+		virtual bool IsRegular() const override;
+		virtual bool IsConnected() const;
+		virtual bool IsHamiltonian() const;
+		virtual bool IsEulerian() const;
+		virtual bool IsBipartite() const;
+		bool IsBiconnected() const;
 		
-		virtual Matrix<bool> getRoadMatrix() const override;
+		virtual Matrix<bool> GetRoadMatrix() const override;
 
-		Vector<uint32_t> getArticulationPoints() const;
-		Matrix<uint32_t> getConnectedComponents() const;
-		Matrix<uint32_t> getBiconnectedComponents() const;	// The way it gives the biconnectedComponents have to be reworked.
-		Vector<Pair<uint32_t, uint32_t>> getMinimumSpanningTree() const;
-		Vector<Pair<uint32_t, uint32_t>> getMinimumSpanningTree(int32_t& cost) const;
-		Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> getEdgesVector() const;
+		Vector<uint32_t> GetArticulationPoints() const;
+		Matrix<uint32_t> GetConnectedComponents() const;
+		Matrix<uint32_t> GetBiconnectedComponents() const;	// The way it gives the biconnectedComponents have to be reworked.
+		Vector<Pair<uint32_t, uint32_t>> GetMinimumSpanningTree() const;
+		Vector<Pair<uint32_t, uint32_t>> GetMinimumSpanningTree(int32_t* cost) const;
+		Vector<Pair<Pair<uint32_t, uint32_t>, int32_t>> GetEdgesVector() const;
 
 		UndirectedGraph& operator=(UndirectedGraph const& source);
 
@@ -49,14 +47,23 @@ class UndirectedGraph : public Graph
 		explicit UndirectedGraph(uint32_t const& vertices) : Graph(vertices) { }
 
 	private:
-		bool hasArticulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
-			Vector<uint32_t>& discoveryTime, Vector<uint32_t>& low) const;
+		bool HasArticulationPoint(uint32_t const& vertex, Vector<bool>* visited, Vector<int>* parent,
+			Vector<uint32_t>* discoveryTime, Vector<uint32_t>* low) const;
 
-		void articulationPoint(uint32_t const& vertex, Vector<bool>& visited, Vector<int>& parent,
-			Vector<uint32_t>& discoveryTime, Vector<uint32_t>& low, Vector<uint32_t>& articulationPoints) const;
+		void ArticulationPoint(uint32_t const& vertex, Vector<bool>* visited, Vector<int>* parent,
+			Vector<uint32_t>* discoveryTime, Vector<uint32_t>* low, Vector<uint32_t>* articulationPoints) const;
 
-		void getBiconnectedComponents(uint32_t const& vertex, Vector<int>& parent, Vector<uint32_t>& depth,
-			Vector<uint32_t>& low, Stack<uint32_t>& stack, Vector<Vector<uint32_t>>& biconnectedComponents) const;
+		void GetBiconnectedComponents(uint32_t const& vertex, Vector<int>* parent, Vector<uint32_t>* depth,
+			Vector<uint32_t>* low, Stack<uint32_t>* stack, Vector<Vector<uint32_t>>* biconnectedComponents) const;
+
+		// Hidden interface
+		uint32_t GetInDegree(uint32_t const& vertex) const override { return 0; }	// Override it in case of using Graph& to an UndirectedGraph object.
+		Graph::GetOutDegree;	// Equivalent to GetDegree in UndirectedGraph
+
+		Graph::GetMinInDegree;
+		Graph::GetMinOutDegree;
+		Graph::GetMaxInDegree;
+		Graph::GetMaxOutDegree;
 };
 
 #endif

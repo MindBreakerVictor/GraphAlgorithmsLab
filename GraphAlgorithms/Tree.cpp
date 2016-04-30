@@ -3,9 +3,10 @@
 
 Tree::Tree(uint32_t const& vertices) : UndirectedGraph(vertices)
 {
-	for (uint32_t i = 0; i < vertices - 1; i++)
+	for (uint32_t i = 0; i < vertices - 1; ++i)
 	{
 		uint32_t x, y;
+
 		std::cin >> x >> y;
 		_adjacencyList[x].push_back(std::make_pair(y, 0));
 		_adjacencyList[y].push_back(std::make_pair(x, 0));
@@ -14,13 +15,14 @@ Tree::Tree(uint32_t const& vertices) : UndirectedGraph(vertices)
 
 Tree::Tree(std::ifstream& ifs)
 {
-	ifs >> _vertices;
+	uint32_t vertices;
+	ifs >> vertices;
 
 	_weighted = false;
-	_edges = _vertices - 1;
-	_adjacencyList.resize(_vertices);
+	_edges = vertices - 1;
+	_adjacencyList.resize(vertices);
 
-	for (uint32_t i = 0; i < _vertices - 1; i++)
+	for (uint32_t i = 0; i < GetVertices() - 1; ++i)
 	{
 		uint32_t x, y;
 		ifs >> x >> y;
@@ -29,36 +31,41 @@ Tree::Tree(std::ifstream& ifs)
 	}
 }
 
-uint32_t Tree::getDiameter() const
+uint32_t Tree::GetDiameter() const
 {
-	if (!_vertices)
+	if (!HasVertices() || !HasEdges() || GetVertices() == 1)
 		return 0;
 
 	srand((uint32_t)time(NULL));
-	uint32_t vertex = rand() % _vertices;
-	uint32_t firstLeaf = *breadthFirstSearch(vertex).rbegin();								// The last element discovered by BFS.
-	Vector<int> roadDistance = getRoadDistance(firstLeaf);									// Get the distance from firstLeaf to all vertices in the tree.
+	uint32_t vertex = rand() % GetVertices();
+	uint32_t firstLeaf = *BreadthFirstSearch(vertex).rbegin();								// The last element discovered by BFS.
+	Vector<int> roadDistance = GetRoadDistance(firstLeaf);									// Get the distance from firstLeaf to all vertices in the tree.
 	uint32_t diameter = *std::max_element(roadDistance.cbegin(), roadDistance.cend()) + 1;	// Set the diameter to the highest value from roadDistance + 1.
 
 	return diameter;
 }
 
-Vector<uint32_t> Tree::getCenter() const
+uint32_t Tree::GetRadius() const
 {
-	if (!_vertices)
+	return static_cast<uint32_t>(GetDiameter() / 2);
+}
+
+Vector<uint32_t> Tree::GetCenter() const
+{
+	if (!HasVertices() || !HasEdges())
 		return Vector<uint32_t>();
 
 	Vector<uint32_t> center;
 
 	// Get the chain ends.
 	srand((uint32_t)time(NULL));
-	uint32_t vertex = rand() % _vertices;
-	uint32_t firstLeaf = *breadthFirstSearch(vertex).rbegin();
-	uint32_t secondLeaf = *breadthFirstSearch(firstLeaf).rbegin();
+	uint32_t vertex = rand() % GetVertices();
+	uint32_t firstLeaf = *BreadthFirstSearch(vertex).rbegin();
+	uint32_t secondLeaf = *BreadthFirstSearch(firstLeaf).rbegin();
 
 	// DFS
 	Stack<uint32_t> stack;
-	Vector<bool> visited(_vertices);
+	Vector<bool> visited(GetVertices());
 
 	stack.push(firstLeaf);
 	visited[firstLeaf] = true;
@@ -71,10 +78,10 @@ Vector<uint32_t> Tree::getCenter() const
 		{
 			uint32_t stackSize = stack.size();
 
-			for (uint32_t i = ((stackSize & 1) ? 0 : 1); i < (stackSize >> 1); i++)
+			for (uint32_t i = ((stackSize & 1) ? 0 : 1); i < (stackSize >> 1); ++i)
 				stack.pop();
 
-			for (uint8_t i = (stackSize & 1); i < 2; i++)
+			for (uint8_t i = (stackSize & 1); i < 2; ++i)
 			{
 				center.push_back(stack.top());
 				stack.pop();
@@ -86,13 +93,13 @@ Vector<uint32_t> Tree::getCenter() const
 		uint32_t index;
 		bool found = false;
 
-		for (index = 0; index < _adjacencyList[element].size() && !found; index++)
+		for (index = 0; index < _adjacencyList[element].size() && !found; ++index)
 			if (!visited[_adjacencyList[element][index].first])
 				found = true;
 
 		if (found)
 		{
-			index--;
+			--index;
 			stack.push(_adjacencyList[element][index].first);
 			visited[_adjacencyList[element][index].first] = true;
 		}

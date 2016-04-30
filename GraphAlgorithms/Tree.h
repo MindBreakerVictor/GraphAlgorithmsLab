@@ -12,19 +12,19 @@ class Tree : public UndirectedGraph
 		explicit Tree(std::ifstream& ifs);
 		Tree(Tree const& source) : UndirectedGraph(source) { }
 
-		uint32_t getDiameter() const;
-		uint32_t getRadius() const { return (uint32_t)(getDiameter() / 2); }
+		uint32_t GetDiameter() const;
+		uint32_t GetRadius() const;
 
-		bool isComplete() const override { return false; }
-		bool isRegular() const override { return false; }
-		bool isConnected() const override { return true; }
-		bool isHamiltonian() const override { return false; }
-		bool isEulerian() const override { return false; }
-		bool isBipartite() const override { return true; }
+		bool IsComplete() const override { return false; }
+		bool IsRegular() const override { return false; }
+		bool IsConnected() const override { return true; }
+		bool IsHamiltonian() const override { return false; }
+		bool IsEulerian() const override { return false; }
+		bool IsBipartite() const override { return true; }
 
-		Vector<uint32_t> getCenter() const;
+		Vector<uint32_t> GetCenter() const;
 
-		Vector<Vector<bool>> getRoadMatrix() const override { return Vector<Vector<bool>>(_vertices, Vector<bool>(_vertices, true)); }
+		Vector<Vector<bool>> GetRoadMatrix() const override { return Vector<Vector<bool>>(GetVertices(), Vector<bool>(GetVertices(), true)); }
 };
 
 #endif
